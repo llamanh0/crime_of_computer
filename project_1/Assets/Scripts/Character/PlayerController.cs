@@ -1,0 +1,220 @@
+using UnityEngine;
+using System.Collections;
+
+public class PlayerMovement : MonoBehaviour
+{
+    [Header("Movement Settings")]
+    [SerializeField] private float speed = 8f;
+    [SerializeField] private float jumpingPower = 16f;
+
+    [Header("Dash Settings")]
+    [SerializeField] private float dashingPower = 24f;
+    [SerializeField] private float dashingTime = 0.2f;
+    [SerializeField] private float dashingCooldown = 1f;
+    [SerializeField] private TrailRenderer tr;
+
+    [Header("Wall Slide Settings")]
+    [SerializeField] private float wallSlidingSpeed = 2f;
+
+    [Header("Wall Jump Settings")]
+    [SerializeField] private float wallJumpingTime = 0.2f;
+    [SerializeField] private float wallJumpingDuration = 0.4f;
+    [SerializeField] private Vector2 wallJumpingPower = new Vector2(8f, 16f);
+
+    [Header("Ground and Wall Check")]
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private Transform wallCheck;
+    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float checkRadius = 0.2f;
+
+    private Rigidbody2D rb;
+    private float horizontal;
+    private bool isFacingRight = true;
+    private bool isWallSliding;
+    private bool isWallJumping;
+    private bool isDashing;
+    private bool canDash = true;
+    private float wallJumpingCounter;
+    private float wallJumpingDirection;
+    private bool canDoubleJump;
+    private float coyoteTimeCounter;
+    private float jumpBufferCounter;
+
+    [Header("Advanced Jump Settings")]
+    [SerializeField] private float coyoteTime = 0.2f;
+    [SerializeField] private float jumpBufferTime = 0.2f;
+    [SerializeField] private float variableJumpHeightMultiplier = 0.5f;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
+    private void Update()
+    {
+        if (isDashing) return;
+
+        HandleInput();
+        HandleWallSlide();
+        HandleWallJump();
+        FlipCharacter();
+    }
+
+    private void FixedUpdate()
+    {
+        if (!isWallJumping && !isDashing)
+        {
+            MoveCharacter();
+        }
+    }
+
+    private void HandleInput()
+    {
+        horizontal = Input.GetAxisRaw("Horizontal");
+
+        if (IsGrounded())
+        {
+            coyoteTimeCounter = coyoteTime;
+            canDoubleJump = true;
+        }
+        else
+        {
+            coyoteTimeCounter -= Time.deltaTime;
+        }
+
+        if (Input.GetButtonDown("Jump"))
+        {
+            jumpBufferCounter = jumpBufferTime;
+        }
+        else
+        {
+            jumpBufferCounter -= Time.deltaTime;
+        }
+
+        if (jumpBufferCounter > 0f && coyoteTimeCounter > 0f)
+        {
+            Jump();
+            jumpBufferCounter = 0f;
+        }
+        else if (jumpBufferCounter > 0f && canDoubleJump)
+        {
+            Jump();
+            canDoubleJump = false;
+            jumpBufferCounter = 0f;
+        }
+
+        if (Input.GetButtonUp("Jump") && rb.linearVelocity.y > 0f)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * variableJumpHeightMultiplier);
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
+        {
+            StartCoroutine(Dash());
+        }
+    }
+
+    private void MoveCharacter()
+    {
+        rb.linearVelocity = new Vector2(horizontal * speed, rb.linearVelocity.y);
+    }
+
+    private void Jump()
+    {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
+    }
+
+    private bool IsGrounded()
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
+    }
+
+    private bool IsWalled()
+    {
+        return Physics2D.OverlapCircle(wallCheck.position, checkRadius, wallLayer);
+    }
+
+    private void HandleWallSlide()
+    {
+        if (IsWalled() && !IsGrounded() && horizontal != 0f)
+        {
+            isWallSliding = true;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
+        }
+        else
+        {
+            isWallSliding = false;
+        }
+    }
+
+    private void HandleWallJump()
+    {
+        if (isWallSliding)
+        {
+            wallJumpingCounter = wallJumpingTime;
+            isWallJumping = false;
+            wallJumpingDirection = -transform.localScale.x;
+        }
+        else
+        {
+            wallJumpingCounter -= Time.deltaTime;
+        }
+
+        if (Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
+        {
+            isWallJumping = true;
+            rb.linearVelocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            wallJumpingCounter = 0f;
+
+            FlipCharacterImmediately();
+            Invoke(nameof(ResetWallJumping), wallJumpingDuration);
+        }
+    }
+
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.linearVelocity = new Vector2(transform.localScale.x * dashingPower, 0f);
+        tr.emitting = true;
+        yield return new WaitForSeconds(dashingTime);
+        tr.emitting = false;
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
+    }
+
+    private void ResetWallJumping()
+    {
+        isWallJumping = false;
+    }
+
+    private void FlipCharacter()
+    {
+        if (!isWallJumping && (isFacingRight && horizontal < 0f || !isFacingRight && horizontal > 0f))
+        {
+            FlipCharacterImmediately();
+        }
+    }
+
+    private void FlipCharacterImmediately()
+    {
+        isFacingRight = !isFacingRight;
+        Vector3 localScale = transform.localScale;
+        localScale.x *= -1f;
+        transform.localScale = localScale;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(groundCheck.position, checkRadius);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(wallCheck.position, checkRadius);
+    }
+}

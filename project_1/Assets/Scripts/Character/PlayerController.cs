@@ -1,13 +1,18 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Oyuncunun temel hareket, zıplama, duvar kayma, duvar zıplama ve dash gibi işlevlerini yönetir.
+/// Ek olarak, kamera tetikleyicisine girildiğinde MoveCamera korutinini başlatır.
+/// Kod paneli (isCodePanelActive) açık olduğunda input devre dışı kalır.
+/// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Camera Settings")]
     [SerializeField] private Camera mainCamera;
     [SerializeField] private float cameraSmoothSpeed = 2f;
-    [SerializeField] private float cameraStopDistance = 0.1f; // Kamera hedefe yaklaştığında durma mesafesi
+    [SerializeField] private float cameraStopDistance = 0.1f; // Hedefe yaklaşınca durma toleransı
 
     [Header("Movement Settings")]
     [SerializeField] private float speed = 8f;
@@ -17,7 +22,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float dashingPower = 24f;
     [SerializeField] private float dashingTime = 0.2f;
     [SerializeField] private float dashingCooldown = 1f;
-    [SerializeField] private TrailRenderer dashTrail; // 'tr' ismini 'dashTrail' yaptım, okunurluk için
+    [SerializeField] private TrailRenderer dashTrail;
 
     [Header("Wall Slide Settings")]
     [SerializeField] private float wallSlidingSpeed = 2f;
@@ -39,7 +44,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpBufferTime = 0.2f;
     [SerializeField] private float variableJumpHeightMultiplier = 0.5f;
 
-    // Hareket kontrolü
     private float horizontal;
     private bool isFacingRight = true;
     private bool isWallSliding;
@@ -52,13 +56,13 @@ public class PlayerMovement : MonoBehaviour
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
 
-    // Kod paneli aktifken hareketi engellemek için
+    // Kod paneli açıkken input devre dışı bırakmak için
     private bool isCodePanelActive = false;
 
-    // Kamera korutini kontrolü
+    // Kamera hareket korutini
     private Coroutine cameraMoveCoroutine;
 
-    // Referanslar
+    // Referans
     private Rigidbody2D rb;
 
     private void Awake()
@@ -68,7 +72,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        // Kod paneli açıksa veya dash halinde ise input'u devre dışı bırak
+        // Kod paneli açıksa veya dash atıyorsak input kapansın
         if (isDashing || isCodePanelActive) return;
 
         HandleInput();
@@ -79,18 +83,22 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Kod paneli veya wall jump / dash sırasında hareketi kapat
+        // Duvar zıplaması veya dash anında yatay hareketi kapatıyoruz
         if (!isWallJumping && !isDashing && !isCodePanelActive)
         {
             MoveCharacter();
         }
     }
 
+    /// <summary>
+    /// Klavye inputlarını işleyerek coyote time, jump buffer, dash kontrollerini yapar.
+    /// </summary>
     private void HandleInput()
     {
+        // Yatay hareket
         horizontal = Input.GetAxisRaw("Horizontal");
 
-        // Coyote Time mantığı
+        // Coyote time
         if (IsGrounded())
         {
             coyoteTimeCounter = coyoteTime;
@@ -101,7 +109,7 @@ public class PlayerMovement : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        // Jump Buffer
+        // Jump buffer
         if (Input.GetButtonDown("Jump"))
         {
             jumpBufferCounter = jumpBufferTime;
@@ -111,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
             jumpBufferCounter -= Time.deltaTime;
         }
 
-        // Tek/double jump kontrolü
+        // Zıplama koşulları
         if (jumpBufferCounter > 0f && coyoteTimeCounter > 0f)
         {
             Jump();
@@ -130,40 +138,53 @@ public class PlayerMovement : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * variableJumpHeightMultiplier);
         }
 
-        // Dash
+        // Dash giriş
         if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
         {
             StartCoroutine(Dash());
         }
     }
 
+    /// <summary>
+    /// Karakteri yatay eksende hareket ettirir.
+    /// </summary>
     private void MoveCharacter()
     {
-        // 'linearVelocity' yerine 'velocity' kullanıyoruz
         rb.linearVelocity = new Vector2(horizontal * speed, rb.linearVelocity.y);
     }
 
+    /// <summary>
+    /// Karakteri yukarı doğru zıplatır.
+    /// </summary>
     private void Jump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpingPower);
     }
 
+    /// <summary>
+    /// Zeminde olup olmadığımızı Physics2D.OverlapCircle ile kontrol eder.
+    /// </summary>
     private bool IsGrounded()
     {
         return Physics2D.OverlapCircle(groundCheck.position, checkRadius, groundLayer);
     }
 
+    /// <summary>
+    /// Duvar kenarında olup olmadığımızı Physics2D.OverlapCircle ile kontrol eder.
+    /// </summary>
     private bool IsWalled()
     {
         return Physics2D.OverlapCircle(wallCheck.position, checkRadius, wallLayer);
     }
 
+    /// <summary>
+    /// Duvar kayma kontrolü: yatay input varsa ve duvardaysak düşüş hızını sınırlıyoruz.
+    /// </summary>
     private void HandleWallSlide()
     {
         if (IsWalled() && !IsGrounded() && horizontal != 0f)
         {
             isWallSliding = true;
-            // Duvar kenarındayken düşüş hızını sınırla
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlidingSpeed, float.MaxValue));
         }
         else
@@ -172,21 +193,22 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Duvar zıplaması: belirli bir zaman aralığında (wallJumpingTime) duvardan atlayabiliriz.
+    /// </summary>
     private void HandleWallJump()
     {
         if (isWallSliding)
         {
             wallJumpingCounter = wallJumpingTime;
             isWallJumping = false;
-            // Duvarın tersi yönü
-            wallJumpingDirection = -transform.localScale.x;
+            wallJumpingDirection = -transform.localScale.x; // Duvarın tersi yönü
         }
         else
         {
             wallJumpingCounter -= Time.deltaTime;
         }
 
-        // Duvar zıplaması
         if (Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
         {
             isWallJumping = true;
@@ -198,6 +220,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Dash korutini: Belirli bir süre gravity=0 yapıp yatay yönde hız veriyor.
+    /// </summary>
     private IEnumerator Dash()
     {
         canDash = false;
@@ -206,14 +231,16 @@ public class PlayerMovement : MonoBehaviour
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
 
-        // Dash yönü
         rb.linearVelocity = new Vector2(transform.localScale.x * dashingPower, 0f);
 
-        if (dashTrail) dashTrail.emitting = true;
+        if (dashTrail != null)
+            dashTrail.emitting = true;
 
         yield return new WaitForSeconds(dashingTime);
 
-        if (dashTrail) dashTrail.emitting = false;
+        if (dashTrail != null)
+            dashTrail.emitting = false;
+
         rb.gravityScale = originalGravity;
         isDashing = false;
 
@@ -226,15 +253,20 @@ public class PlayerMovement : MonoBehaviour
         isWallJumping = false;
     }
 
+    /// <summary>
+    /// Karakter yönünü yatay input'a göre çevirir.
+    /// </summary>
     private void FlipCharacter()
     {
-        // Yatay input < 0 ise sola, > 0 ise sağa bak
         if (!isWallJumping && ((isFacingRight && horizontal < 0f) || (!isFacingRight && horizontal > 0f)))
         {
             FlipCharacterImmediately();
         }
     }
 
+    /// <summary>
+    /// Karakteri anında sağ / sol döndürür.
+    /// </summary>
     private void FlipCharacterImmediately()
     {
         isFacingRight = !isFacingRight;
@@ -245,23 +277,26 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Yer kontrolü
+        // Zemin kontrol çizimi
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(groundCheck.position, checkRadius);
 
-        // Duvar kontrolü
+        // Duvar kontrol çizimi
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(wallCheck.position, checkRadius);
     }
 
+    /// <summary>
+    /// Kamera tetikleyicisine girildiğinde MoveCamera korutini başlatır.
+    /// Mevcut bir korutin varsa önce durdurur.
+    /// </summary>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("CameraTrigger"))
+        if (collision.CompareTag("CameraTrigger"))
         {
             CameraTrigger trigger = collision.GetComponent<CameraTrigger>();
             if (trigger != null)
             {
-                // Eski korutini durdur (daha kontrollü)
                 if (cameraMoveCoroutine != null)
                 {
                     StopCoroutine(cameraMoveCoroutine);
@@ -271,9 +306,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Kamera konumunu Lerp ile hedefe yaklaştırır.
+    /// </summary>
     private IEnumerator MoveCamera(Vector3 targetPosition)
     {
-        // Kamera Lerp
         while (Vector3.Distance(mainCamera.transform.position, targetPosition) > cameraStopDistance)
         {
             Vector3 newPosition = Vector3.Lerp(mainCamera.transform.position, targetPosition, cameraSmoothSpeed * Time.deltaTime);
@@ -283,7 +320,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Kod paneli aktif/pasif
+    /// <summary>
+    /// Kod paneli açıldığında hareketi kapatmak için kullanılır.
+    /// </summary>
+    /// <param name="isActive">true=hareket kapalı, false=hareket serbest</param>
     public void SetCodePanelState(bool isActive)
     {
         isCodePanelActive = isActive;

@@ -2,6 +2,10 @@ using UnityEngine;
 using TMPro;
 using System.Collections;
 
+/// <summary>
+/// Oyuncu bir trigger'a girdiğinde, ekrandaki metni önce siler sonra yeni metni yazdırır.
+/// Ardından kendi objesini yok eder.
+/// </summary>
 public class TriggerTextChanger : MonoBehaviour
 {
     [Header("Text Settings")]
@@ -14,6 +18,7 @@ public class TriggerTextChanger : MonoBehaviour
 
     private void Start()
     {
+        // Daha önce kaydedilen ismi çekip {name} placeholder'ını dolduruyoruz
         string playerName = PlayerPrefs.GetString("PlayerName", "Cabbar");
         newText = newText.Replace("{name}", playerName);
     }
@@ -31,21 +36,21 @@ public class TriggerTextChanger : MonoBehaviour
     {
         if (targetText == null) yield break;
 
-        // Metni harf harf sil
+        // 1. Mevcut metni harf harf sil
         for (int i = targetText.text.Length; i >= 0; i--)
         {
             targetText.text = targetText.text.Substring(0, i);
             yield return new WaitForSeconds(eraseSpeed);
         }
 
-        // Yeni metni harf harf yaz
+        // 2. Yeni metni harf harf yaz
         for (int i = 0; i <= newText.Length; i++)
         {
             targetText.text = newText.Substring(0, i);
             yield return new WaitForSeconds(typeSpeed);
         }
 
-        // İş bittikten sonra tetikleyiciyi yok et
+        // İşlem bitince kendini yok et
         Destroy(gameObject);
     }
 }

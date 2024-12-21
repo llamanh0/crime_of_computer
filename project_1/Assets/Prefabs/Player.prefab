@@ -192,12 +192,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 433bcccced871474fa139e656cb0e5b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCamera: {fileID: 0}
+  cameraSmoothSpeed: 2
+  cameraStopDistance: 0.1
   speed: 12
   jumpingPower: 24
   dashingPower: 5
   dashingTime: 0.2
   dashingCooldown: 1
-  tr: {fileID: 8857698916342969105}
+  dashTrail: {fileID: 8857698916342969105}
   wallSlidingSpeed: 2.5
   wallJumpingTime: 0.2
   wallJumpingDuration: 0.4
@@ -211,6 +214,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 192
   checkRadius: 0.2
+  coyoteTime: 0.2
+  jumpBufferTime: 0.2
+  variableJumpHeightMultiplier: 0.5
 --- !u!96 &8857698916342969105
 TrailRenderer:
   serializedVersion: 3

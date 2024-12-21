@@ -2,6 +2,9 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Ana menüden oyuna geçiş, çıkış gibi basit işlevleri yönetir.
+/// </summary>
 public class MainMenuController : MonoBehaviour
 {
     [Header("Scene Management")]

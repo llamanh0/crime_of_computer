@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -50,6 +51,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpBufferTime = 0.2f;
     [SerializeField] private float variableJumpHeightMultiplier = 0.5f;
 
+    private bool isCodePanelActive = false;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -57,7 +60,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (isDashing) return;
+        if (isDashing || isCodePanelActive) return;
 
         HandleInput();
         HandleWallSlide();
@@ -67,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isWallJumping && !isDashing)
+        if (!isWallJumping && !isDashing && !isCodePanelActive)
         {
             MoveCharacter();
         }
@@ -245,5 +248,10 @@ public class PlayerMovement : MonoBehaviour
             mainCamera.transform.position = newPosition;
             yield return null;
         }
+    }
+
+    public void SetCodePanelState(bool isActive)
+    {
+        isCodePanelActive = isActive;
     }
 }

@@ -2,22 +2,40 @@ using UnityEngine;
 
 public class PanelManager : MonoBehaviour
 {
-    public GameObject codePanel;
+    [SerializeField] private GameObject codePanel;
+    [SerializeField] private GameObject codePanelTrigger;
 
-    void Update()
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            codePanel.SetActive(true);
+            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+            if (playerMovement != null)
+            {
+                playerMovement.SetCodePanelState(true);
+            }
+            codePanelTrigger.SetActive(false);
+        }
+    }
+
+    /*
+    private void Update()
     {
         if (codePanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
         {
             codePanel.SetActive(false);
+            // Kod ekranı kapandığında durumu geri ayarla
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                PlayerMovement playerMovement = player.GetComponent<PlayerMovement>();
+                if (playerMovement != null)
+                {
+                    playerMovement.SetCodePanelState(false);
+                }
+            }
         }
     }
-    
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        // Oyuncu collider'a temas ettiğinde
-        if (other.CompareTag("Player"))
-        {
-            codePanel.SetActive(true);
-        }
-    }
+    */
 }

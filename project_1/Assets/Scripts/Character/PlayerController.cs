@@ -3,6 +3,10 @@ using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Camera Settings")]
+    [SerializeField] private Camera mainCamera; 
+    [SerializeField] private float cameraSmoothSpeed = 2f;
+
     [Header("Movement Settings")]
     [SerializeField] private float speed = 8f;
     [SerializeField] private float jumpingPower = 16f;
@@ -216,5 +220,30 @@ public class PlayerMovement : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(wallCheck.position, checkRadius);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("CameraTrigger"))
+        {
+            CameraTrigger trigger = collision.GetComponent<CameraTrigger>();
+            if (trigger != null)
+            {
+                Vector3 targetPosition = trigger.targetPosition;
+                StopAllCoroutines();
+                StartCoroutine(MoveCamera(targetPosition));
+            }
+        }
+    }
+
+    private IEnumerator MoveCamera(Vector3 targetPosition)
+    {
+        while (Vector3.Distance(mainCamera.transform.position, targetPosition) > 0.1f)
+        {
+            Vector3 newPosition = Vector3.Lerp(mainCamera.transform.position, targetPosition, cameraSmoothSpeed * Time.deltaTime);
+            newPosition.z = mainCamera.transform.position.z;
+            mainCamera.transform.position = newPosition;
+            yield return null;
+        }
     }
 }

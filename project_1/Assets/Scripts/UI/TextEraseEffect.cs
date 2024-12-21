@@ -9,6 +9,7 @@ public class TextEraseEffect : MonoBehaviour
     public Button changeButton; // Buton referansı
     public float speed = 0.1f; // Silme ve yazma hızı
     public string newText; // Yeni metin
+    private bool hasTextBeenChanged = false; // Metnin değişip değişmediğini takip eder
 
     void Start()
     {
@@ -18,7 +19,11 @@ public class TextEraseEffect : MonoBehaviour
 
     private void StartReplace()
     {
-        StartCoroutine(ReplaceTextCoroutine());
+        if (!hasTextBeenChanged) // Eğer metin değiştirilmediyse
+        {
+            hasTextBeenChanged = true; // İşaretle
+            StartCoroutine(ReplaceTextCoroutine());
+        }
     }
 
     private IEnumerator ReplaceTextCoroutine()

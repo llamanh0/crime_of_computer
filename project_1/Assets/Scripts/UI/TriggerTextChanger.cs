@@ -12,6 +12,13 @@ public class TriggerTextChanger : MonoBehaviour
 
     private bool isTriggered = false;
 
+    private void Start()
+    {
+        // Oyuncu adını PlayerPrefs'ten al
+        string playerName = PlayerPrefs.GetString("PlayerName", "Cabbar");
+        newText = newText.Replace("{name}", playerName); // {name} ile değiştirilir
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isTriggered && collision.CompareTag("Player")) // Player tag'i kontrolü

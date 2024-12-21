@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6318678846707767151}
   - component: {fileID: 3954012561688661537}
   - component: {fileID: 5680278107546536506}
+  - component: {fileID: 1626856581605551421}
   m_Layer: 0
   m_Name: CameraTrigger
   m_TagString: CameraTrigger
@@ -92,3 +93,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 3, y: 6}
   m_EdgeRadius: 0
+--- !u!114 &1626856581605551421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7896529596694848041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 964d67336f1bd4a688b26735a6949b2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainCamera: {fileID: 0}
+  targetOrthographicSize: 5
+  transitionDuration: 1
+  revertOnExit: 0

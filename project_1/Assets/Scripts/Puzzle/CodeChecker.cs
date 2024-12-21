@@ -28,7 +28,7 @@ public class CodeChecker : MonoBehaviour
     private int currentPuzzleIndex = 0;
 
     // Bu fonksiyon butonun OnClick eventine bağlanacak
-    public void CheckCode()
+    public void CheckCode(string userCode)
     {
         var currentPuzzle = puzzles[currentPuzzleIndex];
         if (puzzleData == null)
@@ -38,7 +38,7 @@ public class CodeChecker : MonoBehaviour
         }
 
         // Tüm whitespace karakterlerini kaldırma
-        string userCode = Regex.Replace(codeInputField.text, @"\s+", "");
+        userCode = Regex.Replace(codeInputField.text, @"\s+", "");
 
         // Beklenen cevap puzzleData.expectedAnswer
         if (userCode == puzzleData.expectedAnswer)

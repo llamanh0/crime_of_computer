@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: 1efceb52054ee5f46ad5487f5b9613a5
   - enabled: 1
-    path: Assets/Scenes/Level_1_HelloWorld.unity
+    path: Assets/Scenes/Level_1.unity
     guid: cc4413720315c3749bd04757d500a512
   - enabled: 1
     path: Assets/Scenes/DenemeAlani.unity

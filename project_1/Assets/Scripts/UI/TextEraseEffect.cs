@@ -1,46 +1,68 @@
 using UnityEngine;
-using TMPro; // TextMeshPro desteği
-using UnityEngine.UI; // Button desteği
+using TMPro;
+using UnityEngine.UI;
 using System.Collections;
 
 public class TextEraseEffect : MonoBehaviour
 {
-    public TextMeshProUGUI targetText; // Hedef TextMeshPro yazısı
-    public Button changeButton; // Buton referansı
-    public float speed = 0.1f; // Silme ve yazma hızı
-    public string newText; // Yeni metin
-    private bool hasTextBeenChanged = false; // Metnin değişip değişmediğini takip eder
+    [SerializeField] private TextMeshProUGUI targetText;
+    [SerializeField] private Button changeButton;
+    [SerializeField] private float speed = 0.1f;
+    [SerializeField] private string newText;
+    [SerializeField] private bool allowSkip = true; // Efekti skip etmek ister misiniz?
 
-    void Start()
+    private bool hasTextBeenChanged = false;
+    private Coroutine currentCoroutine;
+
+    private void Start()
     {
-        // Butona tıklama olayını bağla
-        changeButton.onClick.AddListener(StartReplace);
+        if (changeButton != null)
+        {
+            changeButton.onClick.AddListener(StartReplace);
+        }
     }
 
     private void StartReplace()
     {
-        if (!hasTextBeenChanged) // Eğer metin değiştirilmediyse
+        if (!hasTextBeenChanged)
         {
-            hasTextBeenChanged = true; // İşaretle
-            StartCoroutine(ReplaceTextCoroutine());
+            hasTextBeenChanged = true;
+            if (currentCoroutine != null)
+            {
+                StopCoroutine(currentCoroutine);
+            }
+            currentCoroutine = StartCoroutine(ReplaceTextCoroutine());
+        }
+        else if (allowSkip)
+        {
+            // Eğer skip edilebilir olsun diyorsanız
+            // Mevcut korutini durdurup direkt final metnini yazabiliriz
+            if (currentCoroutine != null)
+            {
+                StopCoroutine(currentCoroutine);
+            }
+            targetText.text = newText;
         }
     }
 
     private IEnumerator ReplaceTextCoroutine()
     {
-        // 1. Aşama: Mevcut yazıyı silme
-        string currentText = targetText.text; // Mevcut metni al
-        for (int i = currentText.Length; i >= 0; i--)
+        if (targetText == null) yield break;
+
+        string current = targetText.text;
+
+        // 1. Aşama: Mevcut yazıyı sil
+        for (int i = current.Length; i >= 0; i--)
         {
-            targetText.text = currentText.Substring(0, i); // Yazıyı kısalt
-            yield return new WaitForSeconds(speed); // Bekleme süresi
+            targetText.text = current.Substring(0, i);
+            yield return new WaitForSeconds(speed);
         }
 
-        // 2. Aşama: Yeni yazıyı yazma
+        // 2. Aşama: Yeni yazıyı yaz
         for (int i = 0; i <= newText.Length; i++)
         {
-            targetText.text = newText.Substring(0, i); // Yeni yazıyı oluştur
-            yield return new WaitForSeconds(speed); // Bekleme süresi
+            targetText.text = newText.Substring(0, i);
+            yield return new WaitForSeconds(speed);
         }
     }
 }

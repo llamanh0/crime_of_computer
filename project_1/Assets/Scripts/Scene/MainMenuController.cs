@@ -4,7 +4,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
-    [SerializeField] private string mainGame;
+    [Header("Scene Management")]
+    [SerializeField] private string mainGameSceneName = "MainGame";
+    [SerializeField] private float startDelay = 1f; // Sahne geçişinden önce bekleme süresi
 
     public void StartGame()
     {
@@ -13,8 +15,8 @@ public class MainMenuController : MonoBehaviour
 
     private IEnumerator StartGameWithDelay()
     {
-        yield return new WaitForSeconds(1f); // 1 saniye bekler
-        SceneManager.LoadScene(mainGame);
+        yield return new WaitForSeconds(startDelay);
+        SceneManager.LoadScene(mainGameSceneName);
     }
 
     public void QuitGame()

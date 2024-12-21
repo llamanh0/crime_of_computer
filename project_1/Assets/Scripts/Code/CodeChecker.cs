@@ -1,37 +1,45 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 public class CodeChecker : MonoBehaviour
 {
+    [Header("UI References")]
     [SerializeField] private TMP_InputField codeInputField;
     [SerializeField] private GameObject codePanel;
-    [SerializeField] private TMP_Text Message;
-    [SerializeField] private GameObject acilanWall; // Açılan duvarın referansı
+    [SerializeField] private TMP_Text messageText;
 
-    private bool isCodeCorrect = false;
+    [Header("Wall Reference")]
+    [SerializeField] private GameObject acilanWall; // Açılacak duvar
+
+    [Header("Wall Opening Settings")]
+    [SerializeField] private float wallMoveUpDistance = 15f;  // Duvarın yukarı gideceği mesafe
+    [SerializeField] private float wallMoveDuration = 1.3f;    // Lerp süresi
+    [SerializeField] private float postMoveWait = 0.5f;        // Duvar yerleşince bekleme süresi
 
     // Bu fonksiyon butonun OnClick eventine bağlanacak
     public void CheckCode()
     {
-        string userCode = codeInputField.text.Replace(" ", "");
+        // Tüm boşluk karakterlerini (tab, newline, space) kaldırmak için Regex
+        string userCode = Regex.Replace(codeInputField.text, @"\s+", "");
+
+        // Basit kod kontrolü
         if (userCode == "true;")
         {
-            Message.color = Color.green;
-            Message.text = "KOD DOĞRU KAPI AÇILIYOR ...";
-            isCodeCorrect = true;
-
+            messageText.color = Color.green;
+            messageText.text = "KOD DOĞRU, KAPI AÇILIYOR...";
             StartCoroutine(OpenWallAndHidePanel());
-            PlayerLive();
+            EnablePlayerMovement();
         }
         else
         {
-            Message.color = Color.red;
-            Message.text = "!!! HATALI KOD !!!";
+            messageText.color = Color.red;
+            messageText.text = "!!! HATALI KOD !!!";
         }
     }
 
-    private void PlayerLive()
+    private void EnablePlayerMovement()
     {
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
@@ -39,30 +47,37 @@ public class CodeChecker : MonoBehaviour
             PlayerMovement playerMovement = player.GetComponent<PlayerMovement>();
             if (playerMovement != null)
             {
-                playerMovement.SetCodePanelState(false); // Oyuncuya hareket izni ver
+                // Kod paneli kapalı, oyuncu hareket edebilir
+                playerMovement.SetCodePanelState(false);
             }
         }
     }
 
     private IEnumerator OpenWallAndHidePanel()
     {
-        if (acilanWall == null)
-        {
-            yield break;
-        }
-        float duration = 1.3f;
+        // Duvar yoksa koroutini sonlandır
+        if (acilanWall == null) yield break;
+
         float elapsedTime = 0f;
         Vector3 startPos = acilanWall.transform.position;
-        Vector3 targetPos = startPos + new Vector3(0, 15, 0);
-        while (elapsedTime < duration)
+        Vector3 targetPos = startPos + new Vector3(0, wallMoveUpDistance, 0);
+
+        // Duvarı yavaşça yukarı taşı
+        while (elapsedTime < wallMoveDuration)
         {
-            acilanWall.transform.position = Vector3.Lerp(startPos, targetPos, elapsedTime / duration);
+            float t = elapsedTime / wallMoveDuration;
+            acilanWall.transform.position = Vector3.Lerp(startPos, targetPos, t);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
         acilanWall.transform.position = targetPos;
-        yield return new WaitForSeconds(0.5f);
+
+        // Biraz bekle
+        yield return new WaitForSeconds(postMoveWait);
+
+        // Duvarı yok et
         Destroy(acilanWall);
+        // Kod panelini kapat
         codePanel.SetActive(false);
     }
 }

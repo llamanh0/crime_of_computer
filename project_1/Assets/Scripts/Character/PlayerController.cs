@@ -27,6 +27,9 @@ public class PlayerMovement : MonoBehaviour
     [Header("Wall Slide Settings")]
     [SerializeField] private float wallSlidingSpeed = 2f;
 
+    [Header("Side Climb Settings")]
+    [SerializeField] private float sideClimbSpeed = 2f; 
+
     [Header("Wall Jump Settings")]
     [SerializeField] private float wallJumpingTime = 0.2f;
     [SerializeField] private float wallJumpingDuration = 0.4f;
@@ -48,6 +51,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isFacingRight = true;
     private bool isWallSliding;
     private bool isWallJumping;
+    private bool isSideClimbing;
     private bool isDashing;
     private bool canDash = true;
     private float wallJumpingCounter;
@@ -64,10 +68,12 @@ public class PlayerMovement : MonoBehaviour
 
     // Referans
     private Rigidbody2D rb;
+    private Animator animator;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -79,6 +85,7 @@ public class PlayerMovement : MonoBehaviour
         HandleWallSlide();
         HandleWallJump();
         FlipCharacter();
+        UpdateAnimatorParameters();
     }
 
     private void FixedUpdate()
@@ -192,6 +199,24 @@ public class PlayerMovement : MonoBehaviour
             isWallSliding = false;
         }
     }
+
+    /// <summary>
+    /// Duvara tırmanma kontrolü: yatay input varsa ve duvardaysak kullanıcının inputuna göre hareket veriyoruz.
+    /// </summary>
+    private void HandleSideClimb()
+    {
+        if (IsWalled() && !IsGrounded() && Input.GetKey(KeyCode.W))
+        {
+            isSideClimbing = true;
+            rb.linearVelocity = new Vector2(rb.linearVelocityX, sideClimbSpeed);
+            // Flip logic? Belki duvara dönük olmayı koruyabilirsiniz
+        }
+        else
+        {
+            isSideClimbing = false;
+        }
+    }
+
 
     /// <summary>
     /// Duvar zıplaması: belirli bir zaman aralığında (wallJumpingTime) duvardan atlayabiliriz.
@@ -327,5 +352,38 @@ public class PlayerMovement : MonoBehaviour
     public void SetCodePanelState(bool isActive)
     {
         isCodePanelActive = isActive;
+    }
+
+    /// <summary>
+    /// Animasyon güncellemelerini sağlamak için kullanılır.
+    /// </summary>
+    private void UpdateAnimatorParameters()
+    {
+        // 1) Speed parametresi (X eksenindeki hız veya x input)
+        float horizontalSpeed = Mathf.Abs(rb.linearVelocity.x);
+        animator.SetFloat("Speed", horizontalSpeed);
+
+        // 2) Zıplama & Düşme
+        bool isGrounded = IsGrounded(); // Varsa bu fonksiyon
+        bool isJumping = !isGrounded && rb.linearVelocity.y > 0.1f;
+        bool isFalling = !isGrounded && rb.linearVelocity.y < -0.1f;
+
+        animator.SetBool("IsJumping", isJumping);
+        animator.SetBool("IsFalling", isFalling);
+        bool isLanding = (isFalling == false && isGrounded == true && rb.linearVelocity.y < 0f);
+        animator.SetBool("IsLanding", isLanding);
+
+        animator.SetBool("IsWallSliding", isWallSliding);
+        animator.SetBool("IsSideClimbing", isSideClimbing);
+        // **Wall Land** (isteğe bağlı; 
+        // eğer “duvardan inince” küçük bir anim oynatacaksanız)
+        // bool justLandedFromWall = isWallSliding == false && walled == false && grounded == true ...
+        // animator.SetBool("IsWallLanding", justLandedFromWall);
+
+        // 3) Dash parametresi
+        animator.SetBool("IsDashing", isDashing);
+
+        // Opsiyonel: isGrounded parametresi de ekleyebilirsiniz
+        animator.SetBool("IsGrounded", isGrounded);
     }
 }

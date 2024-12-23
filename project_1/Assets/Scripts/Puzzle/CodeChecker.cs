@@ -4,65 +4,77 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-/// <summary>
-/// PuzzleData üzerinden beklenecek cevabı alır, girilen kodu kontrol eder ve duvar/kapı açma işlemini yürütür.
-/// </summary>
+[System.Serializable]
+public class WallData
+{
+    public GameObject wallObject;
+    public Vector3 moveDirection = Vector3.up; 
+    public float moveDistance = 15f; 
+    public float moveDuration = 1.3f;
+    public float postMoveWait = 0.5f; // duvar hareketi bittiğinde beklemek isterseniz
+}
+
 public class CodeChecker : MonoBehaviour
 {
     [Header("Puzzle Data")]
-    [Tooltip("Bu puzzle ile ilgili veriler (expectedAnswer, successMessage vb.)")]
     [SerializeField] private PuzzleData puzzleData;
 
     [Header("UI References")]
     [SerializeField] private TMP_InputField codeInputField;
     [SerializeField] private GameObject codePanel;
     [SerializeField] private TMP_Text messageText;
+    [SerializeField] private TMP_Text placeHolder;
 
-    [Header("Wall Opening")]
-    [SerializeField] private GameObject acilanWall; // Eski sistemdeki duvar (opsiyonel)
-    [SerializeField] private float wallMoveUpDistance = 15f;
-    [SerializeField] private float wallMoveDuration = 1.3f;
-    [SerializeField] private float postMoveWait = 0.5f;
+    [Header("Walls (Each with its own params)")]
+    [Tooltip("Her duvar için farklı MoveDirection, MoveDistance, MoveDuration belirleyebilirsiniz.")]
+    [SerializeField] private List<WallData> acilanWalls; 
 
+    [Header("Puzzle List (Opsiyonel)")]
     [SerializeField] private List<PuzzleData> puzzles;
     private int currentPuzzleIndex = 0;
 
-    // Bu fonksiyon butonun OnClick eventine bağlanacak
     public void CheckCode(string userCode)
     {
-        var currentPuzzle = puzzles[currentPuzzleIndex];
-        if (puzzleData == null)
+        // PuzzleData seçimi
+        var currentPuzzle = puzzles.Count > 0 ? puzzles[currentPuzzleIndex] : puzzleData;
+        if (currentPuzzle == null)
         {
             Debug.LogWarning("PuzzleData atanmadı! Lütfen Inspector'dan bir PuzzleData referansı verin.");
             return;
         }
 
-        // Tüm whitespace karakterlerini kaldırma
+        // Boşlukları temizle
         userCode = Regex.Replace(codeInputField.text, @"\s+", "");
 
-        // Beklenen cevap puzzleData.expectedAnswer
-        if (userCode == puzzleData.expectedAnswer)
+        // Kod karşılaştırma
+        if (userCode == currentPuzzle.expectedAnswer)
         {
-            currentPuzzleIndex++;
+            placeHolder.color = Color.green;
+            placeHolder.text = currentPuzzle.expectedAnswer;
             messageText.color = Color.green;
-            messageText.text = puzzleData.successMessage;
+            messageText.text = currentPuzzle.successMessage;
 
-            // Puzzleda unlockableObject tanımlıysa, orayı açma logic'i. (Opsiyonel)
-            if (puzzleData.unlockableObject != null)
+            // Sonraki puzzle
+            currentPuzzleIndex++;
+            if (currentPuzzleIndex >= puzzles.Count)
             {
-                // puzzleData.unlockableObject'i yok edebilir, aktif edebilir vs.
-                // Destroy(puzzleData.unlockableObject);
-                // codePanel.SetActive(false);
+                currentPuzzleIndex = 0;
             }
 
-            // Eski duvar açma yaklaşımı
-            if (acilanWall != null)
+            // unlockableObject veya benzeri mantık
+            if (currentPuzzle.unlockableObject != null)
             {
-                StartCoroutine(OpenWallAndHidePanel());
+                // Destroy(currentPuzzle.unlockableObject);
+            }
+
+            // Duvarları tek tek açma
+            if (acilanWalls != null && acilanWalls.Count > 0)
+            {
+                StartCoroutine(OpenWallsOneByOne());
             }
             else
             {
-                // Duvar yoksa sadece paneli kapat ve player'ı serbest bırak
+                // Hiç duvar yoksa paneli kapat
                 codePanel.SetActive(false);
             }
 
@@ -70,37 +82,66 @@ public class CodeChecker : MonoBehaviour
         }
         else
         {
+            placeHolder.color = Color.red;
+            placeHolder.text = "<Tekrar Deneyin!>;";
             messageText.color = Color.red;
-            messageText.text = puzzleData.failMessage;
+            messageText.text = currentPuzzle.failMessage;
         }
     }
 
-    private IEnumerator OpenWallAndHidePanel()
+    /// <summary>
+    /// Duvarları tek tek, her bir WallData'ya özgü parametrelerle açar.
+    /// </summary>
+    private IEnumerator OpenWallsOneByOne()
     {
-        float elapsedTime = 0f;
-        Vector3 startPos = acilanWall.transform.position;
-        Vector3 targetPos = startPos + new Vector3(0, wallMoveUpDistance, 0);
-
-        while (elapsedTime < wallMoveDuration)
+        // for döngüsüyle her duvarın hareketini sırayla yap
+        for (int i = 0; i < acilanWalls.Count; i++)
         {
-            float t = elapsedTime / wallMoveDuration;
-            acilanWall.transform.position = Vector3.Lerp(startPos, targetPos, t);
+            WallData wallData = acilanWalls[i];
+            if (wallData.wallObject == null) continue; // Geçerli bir duvar yoksa atla
+
+            // Tek duvar için move
+            yield return StartCoroutine(MoveOneWall(wallData));
+
+            // Her duvar bittikten sonra 
+            yield return new WaitForSeconds(wallData.postMoveWait);
+
+            // İsteğe bağlı: Duvarı yok et
+            Destroy(wallData.wallObject);
+        }
+
+        // Tüm duvarlar bitince listeyi boşalt
+        acilanWalls.Clear();
+
+        // Paneli kapat
+        codePanel.SetActive(false);
+    }
+
+    /// <summary>
+    /// Bir duvarı, kendi parametrelerine göre hareket ettirir (tek sefer).
+    /// </summary>
+    private IEnumerator MoveOneWall(WallData wallData)
+    {
+        Vector3 startPos = wallData.wallObject.transform.position;
+        // Yön * mesafe
+        Vector3 targetPos = startPos + wallData.moveDirection.normalized * wallData.moveDistance;
+
+        float elapsedTime = 0f;
+        while (elapsedTime < wallData.moveDuration)
+        {
             elapsedTime += Time.deltaTime;
+            float t = elapsedTime / wallData.moveDuration;
+
+            // Lerp
+            wallData.wallObject.transform.position = Vector3.Lerp(startPos, targetPos, t);
             yield return null;
         }
-        acilanWall.transform.position = targetPos;
-
-        yield return new WaitForSeconds(postMoveWait);
-
-        // Duvarı yok et (veya kapıyı açma animasyonunuz varsa orada sonlandırın)
-        Destroy(acilanWall);
-
-        codePanel.SetActive(false);
+        // Final
+        wallData.wallObject.transform.position = targetPos;
     }
 
     private void EnablePlayerMovement()
     {
-        // Panel kapandığında player hareket edebilsin
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {

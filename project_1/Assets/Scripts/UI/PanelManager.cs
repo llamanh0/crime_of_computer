@@ -20,9 +20,19 @@ public class PanelManager : MonoBehaviour
 
             // Oyuncu hareketi kilitle
             PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+            Rigidbody2D rb = playerMovement.GetComponent<Rigidbody2D>();
+            Animator animator = playerMovement.GetComponent<Animator>();
             if (playerMovement != null)
             {
                 playerMovement.SetCodePanelState(true);
+            }
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+                if (animator != null)
+                {
+                    animator.SetFloat("Speed", 0f);
+                }
             }
 
             // Tetikleyiciyi yok et veya kapat

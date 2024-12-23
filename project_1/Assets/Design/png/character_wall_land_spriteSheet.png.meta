@@ -1,25 +1,25 @@
 fileFormatVersion: 2
-guid: 9dd3bac22bd3b10438954b0afef81afc
+guid: 2aec2e52437045247b4fed5f278df3d1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 467525442820023134
-    second: character_wall_land_spriteSheet_0
+      213: 6605335132685445643
+    second: character_wall_land_spriteSheet 1_0
   - first:
-      213: -5036558684908217804
-    second: character_wall_land_spriteSheet_1
+      213: 7404720204324111602
+    second: character_wall_land_spriteSheet 1_1
   - first:
-      213: 2499612855778692137
-    second: character_wall_land_spriteSheet_2
+      213: -2993813512154324272
+    second: character_wall_land_spriteSheet 1_2
   - first:
-      213: 2090028336859089610
-    second: character_wall_land_spriteSheet_3
+      213: -6452826815404057684
+    second: character_wall_land_spriteSheet 1_3
   - first:
-      213: 9138200227148817805
-    second: character_wall_land_spriteSheet_4
+      213: 7262585949108839380
+    second: character_wall_land_spriteSheet 1_4
   - first:
-      213: -6523967768961645429
-    second: character_wall_land_spriteSheet_5
+      213: 2429375072935885275
+    second: character_wall_land_spriteSheet 1_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -141,7 +141,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_0
+      name: character_wall_land_spriteSheet 1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -156,14 +156,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e53aeb6c9ebfc7600800000000000000
-      internalID: 467525442820023134
+      spriteID: b0aaf1e7e4ddaab50800000000000000
+      internalID: 6605335132685445643
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_1
+      name: character_wall_land_spriteSheet 1_1
       rect:
         serializedVersion: 2
         x: 48
@@ -178,14 +178,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 43a13a79f8c8a1ab0800000000000000
-      internalID: -5036558684908217804
+      spriteID: 2f485ef3bc9d2c660800000000000000
+      internalID: 7404720204324111602
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_2
+      name: character_wall_land_spriteSheet 1_2
       rect:
         serializedVersion: 2
         x: 96
@@ -200,14 +200,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 92c40b816a860b220800000000000000
-      internalID: 2499612855778692137
+      spriteID: 0d2e64cf876d376d0800000000000000
+      internalID: -2993813512154324272
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_3
+      name: character_wall_land_spriteSheet 1_3
       rect:
         serializedVersion: 2
         x: 144
@@ -222,14 +222,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: aca8cfce2b5410d10800000000000000
-      internalID: 2090028336859089610
+      spriteID: cabd9be2334f276a0800000000000000
+      internalID: -6452826815404057684
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_4
+      name: character_wall_land_spriteSheet 1_4
       rect:
         serializedVersion: 2
         x: 192
@@ -244,14 +244,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d856999b0b861de70800000000000000
-      internalID: 9138200227148817805
+      spriteID: 4d3206f1173e9c460800000000000000
+      internalID: 7262585949108839380
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: character_wall_land_spriteSheet_5
+      name: character_wall_land_spriteSheet 1_5
       rect:
         serializedVersion: 2
         x: 240
@@ -266,8 +266,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b8481fc21e53675a0800000000000000
-      internalID: -6523967768961645429
+      spriteID: bd93888e1cfd6b120800000000000000
+      internalID: 2429375072935885275
       vertices: []
       indices: 
       edges: []
@@ -276,7 +276,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: f225231c3970e414aa7a4dbb66da2190
+    spriteID: bbfaa53c9e17ae64ba6601bdc51533ca
     internalID: 0
     vertices: []
     indices: 
@@ -286,12 +286,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      character_wall_land_spriteSheet_0: 467525442820023134
-      character_wall_land_spriteSheet_1: -5036558684908217804
-      character_wall_land_spriteSheet_2: 2499612855778692137
-      character_wall_land_spriteSheet_3: 2090028336859089610
-      character_wall_land_spriteSheet_4: 9138200227148817805
-      character_wall_land_spriteSheet_5: -6523967768961645429
+      character_wall_land_spriteSheet 1_0: 6605335132685445643
+      character_wall_land_spriteSheet 1_1: 7404720204324111602
+      character_wall_land_spriteSheet 1_2: -2993813512154324272
+      character_wall_land_spriteSheet 1_3: -6452826815404057684
+      character_wall_land_spriteSheet 1_4: 7262585949108839380
+      character_wall_land_spriteSheet 1_5: 2429375072935885275
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

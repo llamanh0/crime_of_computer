@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using System.Collections;
 
 /// <summary>
 /// Trigger'a girildiğinde kod panelini açar, oyuncu hareketini kısıtlar.
@@ -8,7 +11,8 @@ public class PanelManager : MonoBehaviour
 {
     [SerializeField] private GameObject codePanel;
     [SerializeField] private GameObject codePanelTrigger;
-    [SerializeField] private bool destroyTriggerOnEnter = true;
+    [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
+    [SerializeField] private bool destroyTriggerOnEnter = true; 
     // true ise tetikleyiciye girildiğinde objeyi yok ediyor,
     // false ise sadece SetActive(false) yapıyor.
 
@@ -29,10 +33,23 @@ public class PanelManager : MonoBehaviour
             if (rb != null)
             {
                 rb.linearVelocity = Vector2.zero;
+                // Oyuncu animasyonunu sıfırla.
                 if (animator != null)
                 {
                     animator.SetFloat("Speed", 0f);
-                }
+                    animator.SetBool("IsJumping", false);
+                    animator.SetBool("IsFalling", false);
+                    animator.SetBool("IsDashing", false);
+                    animator.SetBool("IsWallSliding", false);
+                    animator.SetBool("IsWallLand", false);
+                    animator.SetBool("IsGrounded", true);
+                } 
+            }
+
+            // Kod paneli açıldığında input alanını seç ve odakla
+            if (codeChecker != null)
+            {
+                codeChecker.FocusInputFieldPublic();
             }
 
             // Tetikleyiciyi yok et veya kapat

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 7478075e1e54a36478e2a78c012d2092
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - mainCamera: {instanceID: 0}
+  - dashTrail: {instanceID: 0}
+  - groundCheck: {instanceID: 0}
+  - wallCheck: {instanceID: 0}
+  - playerSettings: {fileID: 11400000, guid: 2b42dbcbf479e9c4ea3f4aec51bfa532, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

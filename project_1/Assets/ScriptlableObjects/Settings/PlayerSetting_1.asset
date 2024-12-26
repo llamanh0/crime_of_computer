@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f02643c2516cac440b50eeb1af3558fc, type: 3}
+  m_Name: PlayerSetting_1
+  m_EditorClassIdentifier: 
+  speed: 8
+  jumpingPower: 30
+  dashingPower: 7
+  dashingTime: 0.2
+  dashingCooldown: 1
+  wallSlidingSpeed: 2
+  sideClimbSpeed: 2
+  wallJumpingTime: 0.2
+  wallJumpingDuration: 0.4
+  wallJumpingPower: {x: 8, y: 16}
+  checkRadius: 0.2
+  coyoteTime: 0.2
+  jumpBufferTime: 0.2
+  variableJumpHeightMultiplier: 0.5
+  cameraSmoothSpeed: 2
+  cameraStopDistance: 0.1

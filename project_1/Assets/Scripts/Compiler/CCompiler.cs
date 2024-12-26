@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using UnityEngine;
 
+/*
 public class CCompiler : MonoBehaviour
 {
     [SerializeField] private CodePanelManager codePanelManager;
@@ -259,3 +260,4 @@ public class CCompiler : MonoBehaviour
         return true;
     }
 }
+*/

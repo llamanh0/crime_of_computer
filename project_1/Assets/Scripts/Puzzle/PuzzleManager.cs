@@ -5,7 +5,7 @@ public class PuzzleManager : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private TMP_InputField codeInputField;
-    [SerializeField] private Button runButton;
+    //[SerializeField] private Button runButton;
     [SerializeField] private TMP_Text outputText;
 
     [Header("Compiler")]

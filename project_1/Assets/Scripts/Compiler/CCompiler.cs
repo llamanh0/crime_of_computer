@@ -5,28 +5,39 @@ using UnityEngine;
 
 public class CCompiler : MonoBehaviour
 {
+    [Header("Script References")]
     [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
     [SerializeField] private SingleLineOutput singleLineOutput; // SingleLineOutput referansı
-    [SerializeField] private PuzzleManager puzzleManager;
 
-
+    /// <summary>
+    /// Derleyicinin yolunu belirler.
+    /// </summary>
+    /// <returns>Derleyicinin tam yolu.</returns>
     private string GetCompilerPath()
     {
         #if UNITY_STANDALONE_WIN
             return Path.Combine(Application.dataPath, "Plugins/Windows/bin/tcc.exe");
+        #elif UNITY_STANDALONE_OSX
+            return Path.Combine(Application.dataPath, "Plugins/macOS/bin/tcc");
+        #elif UNITY_STANDALONE_LINUX
+            return Path.Combine(Application.dataPath, "Plugins/Linux/bin/tcc");
         #else
             return string.Empty;
         #endif
     }
 
+    /// <summary>
+    /// Verilen C kodunu derler ve çalıştırır.
+    /// </summary>
+    /// <param name="code">Derlenecek C kodu.</param>
     public void CompileAndRun(string code)
     {
-        UnityEngine.Debug.Log("Derleme işlemi başlatılıyor...");
+        Debug.Log("Derleme işlemi başlatılıyor...");
 
         // Güvenli kod kontrolü
         if (!IsCodeSafe(code))
         {
-            UnityEngine.Debug.LogError("Güvenli olmayan kod tespit edildi.");
+            Debug.LogError("Güvenli olmayan kod tespit edildi.");
             if (codeChecker != null)
             {
                 codeChecker.DisplayError("Güvenli olmayan kod tespit edildi.");
@@ -35,11 +46,11 @@ public class CCompiler : MonoBehaviour
         }
 
         string compilerPath = GetCompilerPath();
-        UnityEngine.Debug.Log("Derleyici Yolu: " + compilerPath);
+        Debug.Log("Derleyici Yolu: " + compilerPath);
 
         if (!File.Exists(compilerPath))
         {
-            UnityEngine.Debug.LogError("TinyCC derleyicisi bulunamadı: " + compilerPath);
+            Debug.LogError("TinyCC derleyicisi bulunamadı: " + compilerPath);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError("Derleyici bulunamadı.");
@@ -52,7 +63,7 @@ public class CCompiler : MonoBehaviour
         if (!Directory.Exists(tempDir))
         {
             Directory.CreateDirectory(tempDir);
-            UnityEngine.Debug.Log("Geçici dizin oluşturuldu: " + tempDir);
+            Debug.Log("Geçici dizin oluşturuldu: " + tempDir);
         }
 
         string sourcePath = Path.Combine(tempDir, "temp_code.c");
@@ -65,7 +76,7 @@ public class CCompiler : MonoBehaviour
 
         // Kodu geçici dosyaya yazma
         File.WriteAllText(sourcePath, code);
-        UnityEngine.Debug.Log("C kodu geçici dosyaya yazıldı: " + sourcePath);
+        Debug.Log("C kodu geçici dosyaya yazıldı: " + sourcePath);
 
         // Derleme komutu
         ProcessStartInfo compileInfo = new ProcessStartInfo();
@@ -76,23 +87,23 @@ public class CCompiler : MonoBehaviour
         compileInfo.UseShellExecute = false;
         compileInfo.CreateNoWindow = true;
 
-        // PATH'e Plugins/Windows dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
+        // PATH'e Plugins/Windows/bin dizinini ekleyerek DLL'lerin bulunmasını sağlama
+        string pluginsWindowsBinPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
         string existingPath = Environment.GetEnvironmentVariable("PATH");
-        compileInfo.Environment["PATH"] = pluginsWindowsPath + ";" + existingPath;
+        compileInfo.Environment["PATH"] = pluginsWindowsBinPath + ";" + existingPath;
 
         Process compileProcess = new Process();
         compileProcess.StartInfo = compileInfo;
 
-        UnityEngine.Debug.Log("Derleyici çalıştırılıyor: " + compileInfo.FileName + " " + compileInfo.Arguments);
+        Debug.Log("Derleyici çalıştırılıyor: " + compileInfo.FileName + " " + compileInfo.Arguments);
 
         try
         {
             compileProcess.Start();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            UnityEngine.Debug.LogError("Derleyici başlatılamadı: " + e.Message);
+            Debug.LogError("Derleyici başlatılamadı: " + e.Message);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError("Derleyici başlatılamadı: " + e.Message);
@@ -105,16 +116,16 @@ public class CCompiler : MonoBehaviour
         string compileErrors = compileProcess.StandardError.ReadToEnd();
         compileProcess.WaitForExit();
 
-        UnityEngine.Debug.Log("Derleme süreci tamamlandı. Çıkış Kodu: " + compileProcess.ExitCode);
-        UnityEngine.Debug.Log("Derleme Çıktısı: " + compileOutput);
+        Debug.Log("Derleme süreci tamamlandı. Çıkış Kodu: " + compileProcess.ExitCode);
+        Debug.Log("Derleme Çıktısı: " + compileOutput);
         if (!string.IsNullOrEmpty(compileErrors))
         {
-            UnityEngine.Debug.LogError("Derleme Hataları: " + compileErrors);
+            Debug.LogError("Derleme Hataları: " + compileErrors);
         }
 
         if (compileProcess.ExitCode == 0)
         {
-            UnityEngine.Debug.Log("Derleme başarılı.");
+            Debug.Log("Derleme başarılı.");
             if (codeChecker != null)
             {
                 codeChecker.DisplayOutput("Derleme başarılı!");
@@ -123,7 +134,7 @@ public class CCompiler : MonoBehaviour
         }
         else
         {
-            UnityEngine.Debug.LogError("Derleme hataları: " + compileErrors);
+            Debug.LogError("Derleme hataları: " + compileErrors);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError(compileErrors);
@@ -131,67 +142,18 @@ public class CCompiler : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Derlenen programı çalıştırır.
+    /// </summary>
+    /// <param name="executablePath">Çalıştırılabilir dosyanın yolu.</param>
     private void RunExecutable(string executablePath)
     {
-        UnityEngine.Debug.Log("Çalıştırılabilir dosya yolu: " + executablePath);
-
-        if (compileProcess.ExitCode == 0)
-        {
-            UnityEngine.Debug.Log("Derleme başarılı.");
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayOutput("Derleme başarılı!");
-            }
-            RunExecutable(executablePath);
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("Derleme hataları: " + compileErrors);
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayError(compileErrors);
-            }
-            // PuzzleManager'a derleme hatasını bildir
-            if(puzzleManager != null)
-            {
-                puzzleManager.OnCompilationFinished(false, compileErrors);
-            }
-        }
-
-        if (runProcess.ExitCode == 0)
-        {
-            UnityEngine.Debug.Log("Program başarıyla çalıştırıldı.");
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayOutput(runOutput);
-            }
-            // PuzzleManager'a başarılı çıktıyı bildir
-            if(puzzleManager != null)
-            {
-                puzzleManager.OnCompilationFinished(true, runOutput);
-            }
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("Program hatalarla sona erdi: " + runErrors);
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayError(runErrors);
-            }
-            // PuzzleManager'a program hatasını bildir
-            if(puzzleManager != null)
-            {
-                puzzleManager.OnCompilationFinished(false, runErrors);
-            }
-        }
-
-
-
+        Debug.Log("Çalıştırılabilir dosya yolu: " + executablePath);
 
         // Çalıştırılabilir dosyanın varlığını kontrol edin
         if (!File.Exists(executablePath))
         {
-            UnityEngine.Debug.LogError("Çalıştırılabilir dosya bulunamadı: " + executablePath);
+            Debug.LogError("Çalıştırılabilir dosya bulunamadı: " + executablePath);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError("Çalıştırılabilir dosya bulunamadı.");
@@ -207,23 +169,23 @@ public class CCompiler : MonoBehaviour
         runInfo.UseShellExecute = false;
         runInfo.CreateNoWindow = true;
 
-        // PATH'e Plugins/Windows dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
-        string existingPath = Environment.GetEnvironmentVariable("PATH");
-        runInfo.Environment["PATH"] = pluginsWindowsPath + ";" + existingPath;
+        // PATH'e Plugins/Windows/bin dizinini ekleyerek DLL'lerin bulunmasını sağlama
+        string pluginsWindowsBinPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
+        string existingPathRun = Environment.GetEnvironmentVariable("PATH");
+        runInfo.Environment["PATH"] = pluginsWindowsBinPath + ";" + existingPathRun;
 
         Process runProcess = new Process();
         runProcess.StartInfo = runInfo;
 
-        UnityEngine.Debug.Log("Program çalıştırılıyor: " + runInfo.FileName);
+        Debug.Log("Program çalıştırılıyor: " + runInfo.FileName);
 
         try
         {
             runProcess.Start();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            UnityEngine.Debug.LogError("Çalıştırma işlemi başlatılamadı: " + e.Message);
+            Debug.LogError("Çalıştırma işlemi başlatılamadı: " + e.Message);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError("Çalıştırma işlemi başlatılamadı: " + e.Message);
@@ -236,16 +198,16 @@ public class CCompiler : MonoBehaviour
         string runErrors = runProcess.StandardError.ReadToEnd();
         runProcess.WaitForExit();
 
-        UnityEngine.Debug.Log("Çalıştırma süreci tamamlandı. Çıkış Kodu: " + runProcess.ExitCode);
-        UnityEngine.Debug.Log("Program Çıktısı: " + runOutput);
+        Debug.Log("Çalıştırma süreci tamamlandı. Çıkış Kodu: " + runProcess.ExitCode);
+        Debug.Log("Program Çıktısı: " + runOutput);
         if (!string.IsNullOrEmpty(runErrors))
         {
-            UnityEngine.Debug.LogError("Program Hataları: " + runErrors);
+            Debug.LogError("Program Hataları: " + runErrors);
         }
 
         if (runProcess.ExitCode == 0)
         {
-            UnityEngine.Debug.Log("Program başarıyla çalıştırıldı.");
+            Debug.Log("Program başarıyla çalıştırıldı.");
             if (singleLineOutput != null)
             {
                 singleLineOutput.DisplayOutput(runOutput.Trim());
@@ -258,7 +220,7 @@ public class CCompiler : MonoBehaviour
         }
         else
         {
-            UnityEngine.Debug.LogError("Program hatalarla sona erdi: " + runErrors);
+            Debug.LogError("Program hatalarla sona erdi: " + runErrors);
             if (codeChecker != null)
             {
                 codeChecker.DisplayError(runErrors);
@@ -266,7 +228,11 @@ public class CCompiler : MonoBehaviour
         }
     }
 
-    // Güvenli kod kontrolü için basit bir yöntem
+    /// <summary>
+    /// Verilen kodun güvenli olup olmadığını kontrol eder.
+    /// </summary>
+    /// <param name="code">Kontrol edilecek C kodu.</param>
+    /// <returns>Güvenli ise true, değilse false.</returns>
     private bool IsCodeSafe(string code)
     {
         // Örnek: sistem çağrılarını engelle

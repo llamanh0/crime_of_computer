@@ -46,12 +46,6 @@ public class PanelManager : MonoBehaviour
                 } 
             }
 
-            // Kod paneli açıldığında input alanını seç ve odakla
-            if (codeChecker != null)
-            {
-                codeChecker.FocusInputFieldPublic();
-            }
-
             // Tetikleyiciyi yok et veya kapat
             if (destroyTriggerOnEnter)
             {

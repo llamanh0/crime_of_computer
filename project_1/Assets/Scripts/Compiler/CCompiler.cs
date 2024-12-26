@@ -1,23 +1,17 @@
-using System; // Environment sınıfını kullanmak için ekledik
+using System;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
 
-/*
 public class CCompiler : MonoBehaviour
 {
-    [SerializeField] private CodePanelManager codePanelManager;
-    [SerializeField] private PuzzleManager puzzleManager;
-
+    [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
+    [SerializeField] private SingleLineOutput singleLineOutput; // SingleLineOutput referansı
 
     private string GetCompilerPath()
     {
         #if UNITY_STANDALONE_WIN
-            return Path.Combine(Application.dataPath, "Plugins/Windows/tcc.exe");
-        #elif UNITY_STANDALONE_OSX
-            return Path.Combine(Application.dataPath, "Plugins/macOS/tcc");
-        #elif UNITY_STANDALONE_LINUX
-            return Path.Combine(Application.dataPath, "Plugins/Linux/tcc");
+            return Path.Combine(Application.dataPath, "Plugins/Windows/bin/tcc.exe");
         #else
             return string.Empty;
         #endif
@@ -31,9 +25,9 @@ public class CCompiler : MonoBehaviour
         if (!IsCodeSafe(code))
         {
             UnityEngine.Debug.LogError("Güvenli olmayan kod tespit edildi.");
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError("Güvenli olmayan kod tespit edildi.");
+                codeChecker.DisplayError("Güvenli olmayan kod tespit edildi.");
             }
             return;
         }
@@ -44,9 +38,9 @@ public class CCompiler : MonoBehaviour
         if (!File.Exists(compilerPath))
         {
             UnityEngine.Debug.LogError("TinyCC derleyicisi bulunamadı: " + compilerPath);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError("Derleyici bulunamadı.");
+                codeChecker.DisplayError("Derleyici bulunamadı.");
             }
             return;
         }
@@ -81,7 +75,7 @@ public class CCompiler : MonoBehaviour
         compileInfo.CreateNoWindow = true;
 
         // PATH'e Plugins/Windows dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows");
+        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
         string existingPath = Environment.GetEnvironmentVariable("PATH");
         compileInfo.Environment["PATH"] = pluginsWindowsPath + ";" + existingPath;
 
@@ -97,9 +91,9 @@ public class CCompiler : MonoBehaviour
         catch (System.Exception e)
         {
             UnityEngine.Debug.LogError("Derleyici başlatılamadı: " + e.Message);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError("Derleyici başlatılamadı: " + e.Message);
+                codeChecker.DisplayError("Derleyici başlatılamadı: " + e.Message);
             }
             return;
         }
@@ -119,18 +113,18 @@ public class CCompiler : MonoBehaviour
         if (compileProcess.ExitCode == 0)
         {
             UnityEngine.Debug.Log("Derleme başarılı.");
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayOutput("Derleme başarılı!");
+                codeChecker.DisplayOutput("Derleme başarılı!");
             }
             RunExecutable(executablePath);
         }
         else
         {
             UnityEngine.Debug.LogError("Derleme hataları: " + compileErrors);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError(compileErrors);
+                codeChecker.DisplayError(compileErrors);
             }
         }
     }
@@ -143,9 +137,9 @@ public class CCompiler : MonoBehaviour
         if (!File.Exists(executablePath))
         {
             UnityEngine.Debug.LogError("Çalıştırılabilir dosya bulunamadı: " + executablePath);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError("Çalıştırılabilir dosya bulunamadı.");
+                codeChecker.DisplayError("Çalıştırılabilir dosya bulunamadı.");
             }
             return;
         }
@@ -159,7 +153,7 @@ public class CCompiler : MonoBehaviour
         runInfo.CreateNoWindow = true;
 
         // PATH'e Plugins/Windows dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows");
+        string pluginsWindowsPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
         string existingPath = Environment.GetEnvironmentVariable("PATH");
         runInfo.Environment["PATH"] = pluginsWindowsPath + ";" + existingPath;
 
@@ -175,9 +169,9 @@ public class CCompiler : MonoBehaviour
         catch (System.Exception e)
         {
             UnityEngine.Debug.LogError("Çalıştırma işlemi başlatılamadı: " + e.Message);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError("Çalıştırma işlemi başlatılamadı: " + e.Message);
+                codeChecker.DisplayError("Çalıştırma işlemi başlatılamadı: " + e.Message);
             }
             return;
         }
@@ -197,50 +191,22 @@ public class CCompiler : MonoBehaviour
         if (runProcess.ExitCode == 0)
         {
             UnityEngine.Debug.Log("Program başarıyla çalıştırıldı.");
-            if (codePanelManager != null)
+            if (singleLineOutput != null)
             {
-                codePanelManager.DisplayOutput(runOutput);
+                singleLineOutput.DisplayOutput(runOutput.Trim());
             }
-            // PuzzleManager'a başarılı çıktıyı bildir
-            if(puzzleManager != null)
+            if (codeChecker != null)
             {
-                puzzleManager.OnCompilationFinished(true, runOutput);
+                // Puzzle'ın çözülüp çözülmediğini kontrol et
+                codeChecker.CheckPuzzleOutput(runOutput.Trim());
             }
         }
         else
         {
             UnityEngine.Debug.LogError("Program hatalarla sona erdi: " + runErrors);
-            if (codePanelManager != null)
+            if (codeChecker != null)
             {
-                codePanelManager.DisplayError(runErrors);
-            }
-            // PuzzleManager'a program hatasını bildir
-            if(puzzleManager != null)
-            {
-                puzzleManager.OnCompilationFinished(false, runErrors);
-            }
-        }
-
-        if (compileProcess.ExitCode == 0)
-        {
-            UnityEngine.Debug.Log("Derleme başarılı.");
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayOutput("Derleme başarılı!");
-            }
-            RunExecutable(executablePath);
-        }
-        else
-        {
-            UnityEngine.Debug.LogError("Derleme hataları: " + compileErrors);
-            if (codePanelManager != null)
-            {
-                codePanelManager.DisplayError(compileErrors);
-            }
-            // PuzzleManager'a derleme hatasını bildir
-            if(puzzleManager != null)
-            {
-                puzzleManager.OnCompilationFinished(false, compileErrors);
+                codeChecker.DisplayError(runErrors);
             }
         }
     }
@@ -260,4 +226,3 @@ public class CCompiler : MonoBehaviour
         return true;
     }
 }
-*/

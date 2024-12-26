@@ -11,7 +11,7 @@ using Debug = UnityEngine.Debug;
 namespace MyGame.Puzzles
 {
     /// <summary>
-    /// C kodunu derleyip çalıştırır ve sonuçları CodeChecker'a iletir.
+    /// C kodunu derler ve çalıştırır, ardından sonuçları CodeChecker'a iletir.
     /// </summary>
     public class CCompiler : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace MyGame.Puzzles
         [SerializeField] private CodeChecker codeChecker;
 
         [Header("Puzzle Settings")]
-        [SerializeField] private string puzzleId;
+        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi
 
         [Header("Compiler Settings")]
         [SerializeField] private CompilerSettings compilerSettings;
@@ -28,23 +28,23 @@ namespace MyGame.Puzzles
         {
             if (codeChecker == null)
             {
-                Debug.LogError("CCompiler: CodeChecker reference not assigned.");
+                Debug.LogError("CCompiler: CodeChecker referansı atanmamış!");
             }
 
-            if (string.IsNullOrEmpty(puzzleId))
+            if (currentPuzzle == null)
             {
-                Debug.LogError("CCompiler: Puzzle ID is not set.");
+                Debug.LogError("CCompiler: currentPuzzle referansı atanmamış!");
             }
         }
 
         /// <summary>
-        /// Derleyicinin yolunu belirler ve C kodunu derler.
+        /// Kullanıcının yazdığı C kodunu derler ve çalıştırır.
         /// </summary>
         public async void CompileAndRun(string userCode)
         {
-            if (codeChecker == null || string.IsNullOrEmpty(puzzleId))
+            if (codeChecker == null || currentPuzzle == null)
             {
-                Debug.LogError("CCompiler: Missing references or puzzle ID.");
+                Debug.LogError("CCompiler: Eksik referanslar veya bulmaca verisi.");
                 return;
             }
 
@@ -77,7 +77,7 @@ namespace MyGame.Puzzles
             executablePath += ".exe";
 #endif
 
-            string fullCode = CodeTemplate.GetFullCode(puzzleId, userCode);
+            string fullCode = CodeTemplate.GetFullCode(currentPuzzle.puzzleID, userCode);
 
             await File.WriteAllTextAsync(sourcePath, fullCode);
             Debug.Log($"C kodu geçici dosyaya yazıldı: {sourcePath}");
@@ -89,7 +89,7 @@ namespace MyGame.Puzzles
             if (compileResult.ExitCode == 0)
             {
                 Debug.Log("Derleme başarılı.");
-                codeChecker.DisplayOutput("Derleme başarılı!");
+                codeChecker.DisplayOutput(currentPuzzle.successMessage);
                 await RunExecutableAsync(executablePath);
             }
             else
@@ -178,59 +178,6 @@ namespace MyGame.Puzzles
             public int ExitCode { get; set; }
             public string StandardOutput { get; set; }
             public string StandardError { get; set; }
-        }
-    }
-
-    /// <summary>
-    /// CompilerSettings ScriptableObject
-    /// </summary>
-    [CreateAssetMenu(fileName = "CompilerSettings", menuName = "Settings/CompilerSettings", order = 2)]
-    public class CompilerSettings : ScriptableObject
-    {
-        public string puzzleId; // Bu alan gerekli değilse kaldırabilirsiniz
-
-        public string GetCompilerPath()
-        {
-#if UNITY_STANDALONE_WIN
-            return Path.Combine(Application.dataPath, "Plugins/Windows/bin/tcc.exe");
-#elif UNITY_STANDALONE_OSX
-            return Path.Combine(Application.dataPath, "Plugins/macOS/bin/tcc");
-#elif UNITY_STANDALONE_LINUX
-            return Path.Combine(Application.dataPath, "Plugins/Linux/bin/tcc");
-#else
-            return string.Empty;
-#endif
-        }
-
-        public string GetCompileArguments(string sourcePath, string executablePath)
-        {
-#if UNITY_STANDALONE_WIN
-            string includePath = Path.Combine(Application.dataPath, "Plugins/Windows/include");
-            string libPath = Path.Combine(Application.dataPath, "Plugins/Windows/lib");
-#elif UNITY_STANDALONE_OSX
-            string includePath = Path.Combine(Application.dataPath, "Plugins/macOS/include");
-            string libPath = Path.Combine(Application.dataPath, "Plugins/macOS/lib");
-#elif UNITY_STANDALONE_LINUX
-            string includePath = Path.Combine(Application.dataPath, "Plugins/Linux/include");
-            string libPath = Path.Combine(Application.dataPath, "Plugins/Linux/lib");
-#endif
-            return $"-I \"{includePath}\" -L \"{libPath}\" -o \"{executablePath}\" \"{sourcePath}\"";
-        }
-
-        public string CompilerWorkingDirectory
-        {
-            get
-            {
-#if UNITY_STANDALONE_WIN
-                return Path.Combine(Application.dataPath, "Plugins/Windows/bin");
-#elif UNITY_STANDALONE_OSX
-                return Path.Combine(Application.dataPath, "Plugins/macOS/bin");
-#elif UNITY_STANDALONE_LINUX
-                return Path.Combine(Application.dataPath, "Plugins/Linux/bin");
-#else
-                return Application.dataPath;
-#endif
-            }
         }
     }
 }

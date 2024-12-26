@@ -4,29 +4,29 @@ using UnityEngine;
 namespace MyGame.Puzzles
 {
     /// <summary>
-    /// Stores data for individual puzzles.
+    /// Her bir bulmaca için gerekli verileri saklar.
     /// </summary>
     [CreateAssetMenu(fileName = "NewPuzzleData", menuName = "Puzzles/PuzzleData", order = 1)]
     public class PuzzleData : ScriptableObject
     {
         [TextArea]
-        [Tooltip("Description or hints for the puzzle.")]
+        [Tooltip("Bulmacanın açıklaması veya ipuçları.")]
         public string puzzleDescription;
 
-        [Tooltip("Expected code output.")]
-        public string expectedAnswer;
+        [Tooltip("Beklenen program çıktısı.")]
+        public string expectedOutput;
 
-        [Tooltip("Message displayed upon successful completion.")]
+        [Tooltip("Bulmaca başarı mesajı.")]
         public string successMessage;
 
-        [Tooltip("Message displayed upon failure.")]
+        [Tooltip("Bulmaca başarısızlık mesajı.")]
         public string failMessage;
 
         [Header("Optional Fields")]
-        [Tooltip("Objects to unlock upon puzzle completion.")]
+        [Tooltip("Bulmaca tamamlandığında açılacak objeler.")]
         public GameObject unlockableObject;
 
-        [Tooltip("Unique identifier for the puzzle.")]
-        public int puzzleID;
+        [Tooltip("Bulmaca için benzersiz kimlik.")]
+        public string puzzleID;
     }
 }

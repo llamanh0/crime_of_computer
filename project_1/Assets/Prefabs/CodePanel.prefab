@@ -438,7 +438,6 @@ GameObject:
   - component: {fileID: 3731303284487614832}
   - component: {fileID: 12538414034895557}
   - component: {fileID: 8186914215711161269}
-  - component: {fileID: 7118983386370812625}
   - component: {fileID: 6173981063729400218}
   m_Layer: 5
   m_Name: CodePanel
@@ -525,20 +524,6 @@ MonoBehaviour:
   runButton: {fileID: 3011029705388108915}
   currentPuzzle: {fileID: 0}
   compiler: {fileID: 0}
---- !u!114 &7118983386370812625
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 890140675102100908}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec085a5c1d323e64eb76a725c8e5e48c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  correctOutput: Hello, World!
-  wallsToControl: []
 --- !u!114 &6173981063729400218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551,7 +536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a49d3c35d87cf7418bf0dcf0933c21f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  codeChecker: {fileID: 7118983386370812625}
+  codeChecker: {fileID: 0}
   puzzleId: 
   compilerSettings: {fileID: 0}
 --- !u!1 &1123519301340231520

@@ -1,6 +1,7 @@
 // Assets/Scripts/UI/CodePanelTrigger.cs
 using UnityEngine;
 using MyGame.Player; // PlayerMovement sınıfının bulunduğu namespace
+using MyGame.Puzzles; // PuzzleData için gerekli olabilir
 
 namespace MyGame.UI
 {
@@ -15,9 +16,13 @@ namespace MyGame.UI
         [Header("Player References")]
         [SerializeField] private Animator playerAnimator; // Oyuncu animasyon kontrolcüsü
 
+        [Header("Puzzle References")]
+        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi
+
         private bool isPlayerNearby = false;
         private PlayerMovement playerMovement;
 
+        [System.Obsolete]
         private void Start()
         {
             playerMovement = FindObjectOfType<PlayerMovement>();

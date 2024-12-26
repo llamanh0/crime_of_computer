@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Puzzle_1
   m_EditorClassIdentifier: 
   puzzleDescription: 
-  expectedAnswer: CrimeOfComputer
+  expectedOutput: CrimeOfComputer
   successMessage: Kod basarili, kapi aciliyor !!!
   failMessage: Kod basarisiz, syntax'a dikkat edin.
   unlockableObject: {fileID: 24152435170889458, guid: ee185daa456964424bd479a3821dbbb1, type: 3}

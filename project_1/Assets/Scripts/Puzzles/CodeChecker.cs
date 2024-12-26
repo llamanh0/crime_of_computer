@@ -1,41 +1,47 @@
 // Assets/Scripts/Puzzles/CodeChecker.cs
 using UnityEngine;
 using MyGame.Walls;
+using MyGame.Core.Utilities;
 using MyGame.Managers;
 using MyGame.UI;
 
 namespace MyGame.Puzzles
 {
     /// <summary>
-    /// Checks the program's output and determines if the puzzle is solved.
+    /// Program çıktısını kontrol eder ve bulmacanın çözülüp çözülmediğini belirler.
     /// </summary>
     public class CodeChecker : MonoBehaviour
     {
-        [SerializeField] private string correctOutput = "CrimeOfComputer";
+        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi
+
         [SerializeField] private WallController[] wallsToControl;
 
         /// <summary>
-        /// Validates the program output against the expected result.
+        /// Program çıktısını beklenen değerle karşılaştırır.
         /// </summary>
-        [System.Obsolete]
         public void CheckPuzzleOutput(string output)
         {
-            Debug.Log($"CodeChecker: Received Output: '{output}'");
-            Debug.Log($"CodeChecker: Expected Output: '{correctOutput}'");
-
-            if (output.Trim() == correctOutput)
+            if (currentPuzzle == null)
             {
-                SingleLineOutput.Instance.DisplayOutput("Puzzle Solved Successfully!");
+                Debug.LogError("CodeChecker: currentPuzzle referansı atanmamış!");
+                return;
+            }
+
+            Debug.Log($"CodeChecker: Alınan Çıktı: '{output}'");
+            Debug.Log($"CodeChecker: Beklenen Çıktı: '{currentPuzzle.expectedOutput}'");
+
+            if (output.Trim() == currentPuzzle.expectedOutput)
+            {
+                SingleLineOutput.Instance.DisplayOutput(currentPuzzle.successMessage);
                 TriggerWallMovements();
                 UnlockNextLevel();
             }
             else
             {
-                SingleLineOutput.Instance.DisplayOutput("Incorrect Output. Try Again.");
+                SingleLineOutput.Instance.DisplayOutput(currentPuzzle.failMessage);
             }
         }
 
-        [System.Obsolete]
         private void TriggerWallMovements()
         {
             foreach (WallController wall in wallsToControl)
@@ -46,19 +52,17 @@ namespace MyGame.Puzzles
 
         private void UnlockNextLevel()
         {
-            // Implement level unlocking logic here.
-            Debug.Log("Next level unlocked!");
-            // Example:
+            // LevelManager ile seviyeyi kilidi açma işlemini gerçekleştirin.
+            Debug.Log("Sonraki seviye açıldı!");
+            // Örneğin:
             // LevelManager.Instance.UnlockLevel(nextLevelID);
         }
 
-        [System.Obsolete]
         public void DisplayError(string error)
         {
             SingleLineOutput.Instance?.DisplayOutput("Error: " + error);
         }
 
-        [System.Obsolete]
         public void DisplayOutput(string output)
         {
             SingleLineOutput.Instance?.DisplayOutput(output);

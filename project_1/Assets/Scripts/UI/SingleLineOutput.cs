@@ -1,12 +1,12 @@
 // Assets/Scripts/UI/SingleLineOutput.cs
-using MyGame.Core.Utilities;
 using TMPro;
 using UnityEngine;
+using MyGame.Core.Utilities; // Singleton namespace'i
 
 namespace MyGame.UI
 {
     /// <summary>
-    /// Displays single-line output messages on the UI.
+    /// Tek satırlık mesajları UI'da görüntüler.
     /// </summary>
     public class SingleLineOutput : Singleton<SingleLineOutput>
     {
@@ -17,12 +17,12 @@ namespace MyGame.UI
             base.Awake();
             if (outputText == null)
             {
-                Debug.LogError("SingleLineOutput: OutputText reference not assigned.");
+                Debug.LogError("SingleLineOutput: OutputText referansı atanmamış!");
             }
         }
 
         /// <summary>
-        /// Displays a message on the UI.
+        /// UI'da bir mesaj görüntüler.
         /// </summary>
         public void DisplayOutput(string message)
         {
@@ -32,7 +32,7 @@ namespace MyGame.UI
             }
             else
             {
-                Debug.LogError("SingleLineOutput: OutputText reference is missing.");
+                Debug.LogError("SingleLineOutput: OutputText referansı eksik!");
             }
         }
     }

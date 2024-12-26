@@ -1,23 +1,42 @@
+// Assets/Scripts/UI/SingleLineOutput.cs
 using TMPro;
 using UnityEngine;
 
-public class SingleLineOutput : MonoBehaviour
+namespace MyGame.UI
 {
-    [SerializeField] private TMP_Text outputText; // UI Text referansı
-
     /// <summary>
-    /// Gelen mesajı OutputText alanında gösterir.
+    /// Tek satırlık çıktıyı ekranda gösterir.
     /// </summary>
-    /// <param name="message">Gösterilecek mesaj.</param>
-    public void DisplayOutput(string message)
+    public class SingleLineOutput : MonoBehaviour
     {
-        if (outputText != null)
+        public static SingleLineOutput Instance { get; private set; }
+
+        [SerializeField] private TMP_Text outputText; // UI Text referansı
+
+        private void Awake()
         {
-            outputText.text = message;
+            if (Instance != null && Instance != this)
+            {
+                Destroy(this.gameObject);
+                return;
+            }
+            Instance = this;
         }
-        else
+
+        /// <summary>
+        /// Gelen mesajı OutputText alanında gösterir.
+        /// </summary>
+        /// <param name="message">Gösterilecek mesaj.</param>
+        public void DisplayOutput(string message)
         {
-            Debug.LogError("SingleLineOutput: OutputText referansı eksik!");
+            if (outputText != null)
+            {
+                outputText.text = message;
+            }
+            else
+            {
+                Debug.LogError("SingleLineOutput: OutputText referansı eksik!");
+            }
         }
     }
 }

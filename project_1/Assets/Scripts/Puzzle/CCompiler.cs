@@ -1,250 +1,234 @@
-using System;
+// Assets/Scripts/Puzzles/CCompiler.cs
+using Debug = UnityEngine.Debug;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using MyGame.Puzzles;
 
-public class CCompiler : MonoBehaviour
+namespace MyGame.Puzzles
 {
-    [Header("Script References")]
-    [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
-    [SerializeField] private SingleLineOutput singleLineOutput; // SingleLineOutput referansı
-
     /// <summary>
-    /// Derleyicinin yolunu belirler.
+    /// C kodunu derleyip çalıştırır ve sonuçları CodeChecker'a iletir.
     /// </summary>
-    /// <returns>Derleyicinin tam yolu.</returns>
-    private string GetCompilerPath()
+    public class CCompiler : MonoBehaviour
     {
-        #if UNITY_STANDALONE_WIN
+        [Header("Script References")]
+        [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
+
+        [Header("Puzzle Settings")]
+        [SerializeField] private string puzzleId; // Aktif puzzle ID'si
+
+        /// <summary>
+        /// Derleyicinin yolunu belirler.
+        /// </summary>
+        /// <returns>Derleyicinin tam yolu.</returns>
+        private string GetCompilerPath()
+        {
+    #if UNITY_STANDALONE_WIN
             return Path.Combine(Application.dataPath, "Plugins/Windows/bin/tcc.exe");
-        #elif UNITY_STANDALONE_OSX
+    #elif UNITY_STANDALONE_OSX
             return Path.Combine(Application.dataPath, "Plugins/macOS/bin/tcc");
-        #elif UNITY_STANDALONE_LINUX
+    #elif UNITY_STANDALONE_LINUX
             return Path.Combine(Application.dataPath, "Plugins/Linux/bin/tcc");
-        #else
+    #else
             return string.Empty;
-        #endif
-    }
+    #endif
+        }
 
-    /// <summary>
-    /// Verilen C kodunu derler ve çalıştırır.
-    /// </summary>
-    /// <param name="code">Derlenecek C kodu.</param>
-    public void CompileAndRun(string code)
-    {
-        Debug.Log("Derleme işlemi başlatılıyor...");
-
-        // Güvenli kod kontrolü
-        if (!IsCodeSafe(code))
+        /// <summary>
+        /// Verilen C kodunu derler ve çalıştırır.
+        /// </summary>
+        /// <param name="code">Derlenecek C kodu.</param>
+        public async void CompileAndRun(string code)
         {
-            Debug.LogError("Güvenli olmayan kod tespit edildi.");
-            if (codeChecker != null)
+            if (string.IsNullOrEmpty(puzzleId))
             {
-                codeChecker.DisplayError("Güvenli olmayan kod tespit edildi.");
+                Debug.LogError("CCompiler: Puzzle ID'si atanmadı!");
+                return;
             }
-            return;
-        }
 
-        string compilerPath = GetCompilerPath();
-        Debug.Log("Derleyici Yolu: " + compilerPath);
+            Debug.Log("Derleme işlemi başlatılıyor...");
 
-        if (!File.Exists(compilerPath))
-        {
-            Debug.LogError("TinyCC derleyicisi bulunamadı: " + compilerPath);
-            if (codeChecker != null)
+            // Güvenli kod kontrolü
+            if (!IsCodeSafe(code))
             {
-                codeChecker.DisplayError("Derleyici bulunamadı.");
+                Debug.LogError("Güvenli olmayan kod tespit edildi.");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayError("Hata: Güvenli olmayan kod tespit edildi.");
+                }
+                return;
             }
-            return;
-        }
 
-        // Geçici dosya yolları
-        string tempDir = Path.Combine(Application.temporaryCachePath, "CCompiler");
-        if (!Directory.Exists(tempDir))
-        {
-            Directory.CreateDirectory(tempDir);
-            Debug.Log("Geçici dizin oluşturuldu: " + tempDir);
-        }
+            string compilerPath = GetCompilerPath();
+            Debug.Log($"Derleyici Yolu: {compilerPath}");
 
-        string sourcePath = Path.Combine(tempDir, "temp_code.c");
-        string executablePath = Path.Combine(tempDir, "temp_program");
+            if (!File.Exists(compilerPath))
+            {
+                Debug.LogError($"TinyCC derleyicisi bulunamadı: {compilerPath}");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayError("Hata: Derleyici bulunamadı.");
+                }
+                return;
+            }
 
-        // Windows için .exe uzantısı ekleyin
-        #if UNITY_STANDALONE_WIN
+            // Geçici dosya yolları
+            string tempDir = Path.Combine(Application.temporaryCachePath, "CCompiler");
+            if (!Directory.Exists(tempDir))
+            {
+                Directory.CreateDirectory(tempDir);
+                Debug.Log($"Geçici dizin oluşturuldu: {tempDir}");
+            }
+
+            string sourcePath = Path.Combine(tempDir, "temp_code.c");
+            string executablePath = Path.Combine(tempDir, "temp_program");
+
+    #if UNITY_STANDALONE_WIN
             executablePath += ".exe";
-        #endif
+    #endif
 
-        // Kodu geçici dosyaya yazma
-        File.WriteAllText(sourcePath, code);
-        Debug.Log("C kodu geçici dosyaya yazıldı: " + sourcePath);
+            // Kullanıcı kodunu template içine ekleme
+            string fullCode = CodeTemplate.GetFullCode(puzzleId, code);
 
-        // Derleme komutu
-        ProcessStartInfo compileInfo = new ProcessStartInfo();
-        compileInfo.FileName = compilerPath;
-        compileInfo.Arguments = $"-I \"{Path.Combine(Application.dataPath, "Plugins/Windows/include")}\" -L \"{Path.Combine(Application.dataPath, "Plugins/Windows/lib")}\" -o \"{executablePath}\" \"{sourcePath}\"";
-        compileInfo.RedirectStandardOutput = true;
-        compileInfo.RedirectStandardError = true;
-        compileInfo.UseShellExecute = false;
-        compileInfo.CreateNoWindow = true;
+            // Kodu geçici dosyaya yazma
+            await File.WriteAllTextAsync(sourcePath, fullCode);
+            Debug.Log($"C kodu geçici dosyaya yazıldı: {sourcePath}");
 
-        // PATH'e Plugins/Windows/bin dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsBinPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
-        string existingPath = Environment.GetEnvironmentVariable("PATH");
-        compileInfo.Environment["PATH"] = pluginsWindowsBinPath + ";" + existingPath;
+            // Derleme işlemini asenkron olarak başlatma
+            string includePath = Path.Combine(Application.dataPath, "Plugins/Windows/include");
+            string libPath = Path.Combine(Application.dataPath, "Plugins/Windows/lib");
+            string compileArguments = $"-I \"{includePath}\" -L \"{libPath}\" -o \"{executablePath}\" \"{sourcePath}\"";
 
-        Process compileProcess = new Process();
-        compileProcess.StartInfo = compileInfo;
+            var compileResult = await RunProcessAsync(compilerPath, compileArguments, Path.Combine(Application.dataPath, "Plugins/Windows/bin"));
 
-        Debug.Log("Derleyici çalıştırılıyor: " + compileInfo.FileName + " " + compileInfo.Arguments);
-
-        try
-        {
-            compileProcess.Start();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Derleyici başlatılamadı: " + e.Message);
-            if (codeChecker != null)
+            if (compileResult.ExitCode == 0)
             {
-                codeChecker.DisplayError("Derleyici başlatılamadı: " + e.Message);
+                Debug.Log("Derleme başarılı.");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayOutput("Derleme başarılı!");
+                }
+                await RunExecutableAsync(executablePath);
             }
-            return;
-        }
-
-        // Çıktıyı oku
-        string compileOutput = compileProcess.StandardOutput.ReadToEnd();
-        string compileErrors = compileProcess.StandardError.ReadToEnd();
-        compileProcess.WaitForExit();
-
-        Debug.Log("Derleme süreci tamamlandı. Çıkış Kodu: " + compileProcess.ExitCode);
-        Debug.Log("Derleme Çıktısı: " + compileOutput);
-        if (!string.IsNullOrEmpty(compileErrors))
-        {
-            Debug.LogError("Derleme Hataları: " + compileErrors);
-        }
-
-        if (compileProcess.ExitCode == 0)
-        {
-            Debug.Log("Derleme başarılı.");
-            if (codeChecker != null)
+            else
             {
-                codeChecker.DisplayOutput("Derleme başarılı!");
-            }
-            RunExecutable(executablePath);
-        }
-        else
-        {
-            Debug.LogError("Derleme hataları: " + compileErrors);
-            if (codeChecker != null)
-            {
-                codeChecker.DisplayError(compileErrors);
+                Debug.LogError($"Derleme hataları: {compileResult.StandardError}");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayError($"Derleme Hataları:\n{compileResult.StandardError}");
+                }
             }
         }
-    }
 
-    /// <summary>
-    /// Derlenen programı çalıştırır.
-    /// </summary>
-    /// <param name="executablePath">Çalıştırılabilir dosyanın yolu.</param>
-    private void RunExecutable(string executablePath)
-    {
-        Debug.Log("Çalıştırılabilir dosya yolu: " + executablePath);
-
-        // Çalıştırılabilir dosyanın varlığını kontrol edin
-        if (!File.Exists(executablePath))
+        /// <summary>
+        /// Derlenen programı çalıştırır.
+        /// </summary>
+        /// <param name="executablePath">Çalıştırılabilir dosyanın yolu.</param>
+        private async Task RunExecutableAsync(string executablePath)
         {
-            Debug.LogError("Çalıştırılabilir dosya bulunamadı: " + executablePath);
-            if (codeChecker != null)
+            Debug.Log($"Çalıştırılabilir dosya yolu: {executablePath}");
+
+            if (!File.Exists(executablePath))
             {
-                codeChecker.DisplayError("Çalıştırılabilir dosya bulunamadı.");
+                Debug.LogError($"Çalıştırılabilir dosya bulunamadı: {executablePath}");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayError("Hata: Çalıştırılabilir dosya bulunamadı.");
+                }
+                return;
             }
-            return;
-        }
 
-        // Çalıştırma komutu
-        ProcessStartInfo runInfo = new ProcessStartInfo();
-        runInfo.FileName = executablePath;
-        runInfo.RedirectStandardOutput = true;
-        runInfo.RedirectStandardError = true;
-        runInfo.UseShellExecute = false;
-        runInfo.CreateNoWindow = true;
+            string runArguments = string.Empty;
 
-        // PATH'e Plugins/Windows/bin dizinini ekleyerek DLL'lerin bulunmasını sağlama
-        string pluginsWindowsBinPath = Path.Combine(Application.dataPath, "Plugins/Windows/bin");
-        string existingPathRun = Environment.GetEnvironmentVariable("PATH");
-        runInfo.Environment["PATH"] = pluginsWindowsBinPath + ";" + existingPathRun;
+            var runResult = await RunProcessAsync(executablePath, runArguments, Path.Combine(Application.dataPath, "Plugins/Windows/bin"));
 
-        Process runProcess = new Process();
-        runProcess.StartInfo = runInfo;
-
-        Debug.Log("Program çalıştırılıyor: " + runInfo.FileName);
-
-        try
-        {
-            runProcess.Start();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Çalıştırma işlemi başlatılamadı: " + e.Message);
-            if (codeChecker != null)
+            if (runResult.ExitCode == 0)
             {
-                codeChecker.DisplayError("Çalıştırma işlemi başlatılamadı: " + e.Message);
+                Debug.Log($"Program başarıyla çalıştırıldı. Çıktı: {runResult.StandardOutput}");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayOutput(runResult.StandardOutput.Trim());
+                    codeChecker.CheckPuzzleOutput(runResult.StandardOutput.Trim());
+                }
             }
-            return;
-        }
-
-        // Çıktıyı oku
-        string runOutput = runProcess.StandardOutput.ReadToEnd();
-        string runErrors = runProcess.StandardError.ReadToEnd();
-        runProcess.WaitForExit();
-
-        Debug.Log("Çalıştırma süreci tamamlandı. Çıkış Kodu: " + runProcess.ExitCode);
-        Debug.Log("Program Çıktısı: " + runOutput);
-        if (!string.IsNullOrEmpty(runErrors))
-        {
-            Debug.LogError("Program Hataları: " + runErrors);
-        }
-
-        if (runProcess.ExitCode == 0)
-        {
-            Debug.Log("Program başarıyla çalıştırıldı.");
-            if (singleLineOutput != null)
+            else
             {
-                singleLineOutput.DisplayOutput(runOutput.Trim());
-            }
-            if (codeChecker != null)
-            {
-                // Puzzle'ın çözülüp çözülmediğini kontrol et
-                codeChecker.CheckPuzzleOutput(runOutput.Trim());
+                Debug.LogError($"Program hatalarla sona erdi: {runResult.StandardError}");
+                if (codeChecker != null)
+                {
+                    codeChecker.DisplayError($"Program Hataları:\n{runResult.StandardError}");
+                }
             }
         }
-        else
-        {
-            Debug.LogError("Program hatalarla sona erdi: " + runErrors);
-            if (codeChecker != null)
-            {
-                codeChecker.DisplayError(runErrors);
-            }
-        }
-    }
 
-    /// <summary>
-    /// Verilen kodun güvenli olup olmadığını kontrol eder.
-    /// </summary>
-    /// <param name="code">Kontrol edilecek C kodu.</param>
-    /// <returns>Güvenli ise true, değilse false.</returns>
-    private bool IsCodeSafe(string code)
-    {
-        // Örnek: sistem çağrılarını engelle
-        string[] forbiddenFunctions = { "system", "exec", "fork", "kill" };
-        foreach (var func in forbiddenFunctions)
+        /// <summary>
+        /// Bir süreci asenkron olarak çalıştırır.
+        /// </summary>
+        /// <param name="fileName">Çalıştırılacak dosya.</param>
+        /// <param name="arguments">Argümanlar.</param>
+        /// <param name="workingDirectory">Çalışma dizini.</param>
+        /// <returns>ProcessResult nesnesi.</returns>
+        private Task<ProcessResult> RunProcessAsync(string fileName, string arguments, string workingDirectory)
         {
-            if (code.Contains(func + "("))
+            return Task.Run(() =>
             {
-                return false;
-            }
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    WorkingDirectory = workingDirectory,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = new Process { StartInfo = startInfo })
+                {
+                    process.Start();
+                    string stdout = process.StandardOutput.ReadToEnd();
+                    string stderr = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    return new ProcessResult
+                    {
+                        ExitCode = process.ExitCode,
+                        StandardOutput = stdout,
+                        StandardError = stderr
+                    };
+                }
+            });
         }
-        return true;
+
+        /// <summary>
+        /// Verilen kodun güvenli olup olmadığını kontrol eder.
+        /// </summary>
+        /// <param name="code">Kontrol edilecek C kodu.</param>
+        /// <returns>Güvenli ise true, değilse false.</returns>
+        private bool IsCodeSafe(string code)
+        {
+            // Örnek: sistem çağrılarını engelle
+            string[] forbiddenFunctions = { "system", "exec", "fork", "kill" };
+            foreach (var func in forbiddenFunctions)
+            {
+                if (code.Contains(func + "("))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Süreç sonuçlarını tutar.
+        /// </summary>
+        private class ProcessResult
+        {
+            public int ExitCode { get; set; }
+            public string StandardOutput { get; set; }
+            public string StandardError { get; set; }
+        }
     }
 }

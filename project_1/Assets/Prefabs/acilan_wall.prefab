@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 162158150641869470}
   - component: {fileID: 1406333202599088917}
   - component: {fileID: 4777418974649655931}
+  - component: {fileID: 6561535102482388290}
   m_Layer: 7
   m_Name: acilan_wall
   m_TagString: Untagged
@@ -162,3 +163,17 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &6561535102482388290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24152435170889458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ae8ccd6a6adfee4fb239f09395df3f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPosition: {x: 0, y: 0, z: 0}
+  moveDuration: 2

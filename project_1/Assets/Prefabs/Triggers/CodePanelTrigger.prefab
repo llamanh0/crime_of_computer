@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1887964164299846031}
   - component: {fileID: 2295747244067410382}
-  - component: {fileID: 117380438349927249}
   m_Layer: 0
   m_Name: CodePanelTrigger
   m_TagString: Untagged
@@ -79,16 +78,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.965536, y: 13.997402}
   m_EdgeRadius: 0
---- !u!114 &117380438349927249
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3189774016277233737}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28be3fddf8543734691fc77bc92e6229, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  codePanel: {fileID: 0}

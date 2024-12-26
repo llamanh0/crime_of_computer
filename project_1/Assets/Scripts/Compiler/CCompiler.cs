@@ -7,6 +7,8 @@ public class CCompiler : MonoBehaviour
 {
     [SerializeField] private CodeChecker codeChecker; // CodeChecker referansı
     [SerializeField] private SingleLineOutput singleLineOutput; // SingleLineOutput referansı
+    [SerializeField] private PuzzleManager puzzleManager;
+
 
     private string GetCompilerPath()
     {
@@ -132,6 +134,59 @@ public class CCompiler : MonoBehaviour
     private void RunExecutable(string executablePath)
     {
         UnityEngine.Debug.Log("Çalıştırılabilir dosya yolu: " + executablePath);
+
+        if (compileProcess.ExitCode == 0)
+        {
+            UnityEngine.Debug.Log("Derleme başarılı.");
+            if (codePanelManager != null)
+            {
+                codePanelManager.DisplayOutput("Derleme başarılı!");
+            }
+            RunExecutable(executablePath);
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("Derleme hataları: " + compileErrors);
+            if (codePanelManager != null)
+            {
+                codePanelManager.DisplayError(compileErrors);
+            }
+            // PuzzleManager'a derleme hatasını bildir
+            if(puzzleManager != null)
+            {
+                puzzleManager.OnCompilationFinished(false, compileErrors);
+            }
+        }
+
+        if (runProcess.ExitCode == 0)
+        {
+            UnityEngine.Debug.Log("Program başarıyla çalıştırıldı.");
+            if (codePanelManager != null)
+            {
+                codePanelManager.DisplayOutput(runOutput);
+            }
+            // PuzzleManager'a başarılı çıktıyı bildir
+            if(puzzleManager != null)
+            {
+                puzzleManager.OnCompilationFinished(true, runOutput);
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("Program hatalarla sona erdi: " + runErrors);
+            if (codePanelManager != null)
+            {
+                codePanelManager.DisplayError(runErrors);
+            }
+            // PuzzleManager'a program hatasını bildir
+            if(puzzleManager != null)
+            {
+                puzzleManager.OnCompilationFinished(false, runErrors);
+            }
+        }
+
+
+
 
         // Çalıştırılabilir dosyanın varlığını kontrol edin
         if (!File.Exists(executablePath))

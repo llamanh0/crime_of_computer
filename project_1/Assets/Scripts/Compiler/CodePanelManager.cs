@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-/*
+
 public class CodePanelManager : MonoBehaviour
 {
     [SerializeField] private TMP_InputField codeInputField;
@@ -36,4 +36,4 @@ public class CodePanelManager : MonoBehaviour
         outputText.text = "Hata: " + error;
     }
 }
-*/
+

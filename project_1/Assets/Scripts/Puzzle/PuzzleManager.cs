@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-/*
+
 public class PuzzleManager : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -61,4 +61,3 @@ public class PuzzleManager : MonoBehaviour
         // LevelManager.Instance.UnlockLevel(2);
     }
 }
-*/

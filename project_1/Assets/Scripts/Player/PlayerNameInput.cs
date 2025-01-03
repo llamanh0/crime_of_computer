@@ -1,3 +1,4 @@
+// Assets/Scripts/Player/PlayerNameInput.cs
 using UnityEngine;
 using TMPro;
 
@@ -12,6 +13,12 @@ public class PlayerNameInput : MonoBehaviour
 
     public void SavePlayerName()
     {
+        if (inputField == null)
+        {
+            Debug.LogError("PlayerNameInput: InputField referansı atanmamış!");
+            return;
+        }
+
         string playerName = inputField.text;
 
         if (string.IsNullOrWhiteSpace(playerName))

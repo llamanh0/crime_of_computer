@@ -1,13 +1,10 @@
-// Assets/Scripts/Player/PlayerMovement.cs
 using UnityEngine;
 using System.Collections;
-using MyGame.Core.Utilities; // Singleton için gerekli namespace
 
 namespace MyGame.Player
 {
     /// <summary>
     /// Oyuncunun temel hareket, zıplama, duvar kayma, duvar zıplama ve dash gibi işlevlerini yönetir.
-    /// Ek olarak, kamera tetikleyicisine girildiğinde MoveCamera korutinini başlatır.
     /// Kod paneli (isCodePanelActive) açık olduğunda input devre dışı kalır.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
@@ -20,10 +17,9 @@ namespace MyGame.Player
         [SerializeField] private Transform wallCheck;
         [SerializeField] private LayerMask groundLayer;
         [SerializeField] private LayerMask wallLayer;
+        [SerializeField] private Animator animator;
 
-        [Header("Settings")]
-        [SerializeField] private PlayerSettings playerSettings;
-
+        private Rigidbody2D rb;
         private float horizontalInput;
         private bool isFacingRight = true;
         private bool isWallSliding;
@@ -36,18 +32,13 @@ namespace MyGame.Player
         private bool canDoubleJump;
         private float coyoteTimeCounter;
         private float jumpBufferCounter;
-
         private bool isCodePanelActive = false;
-        private Coroutine cameraMoveCoroutine;
 
-        private Rigidbody2D rb;
-        private Animator animator;
+        public PlayerSettings playerSettings;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
-            animator = GetComponent<Animator>();
-
             if (playerSettings == null)
             {
                 Debug.LogError("PlayerSettings not assigned in PlayerMovement.");
@@ -117,10 +108,10 @@ namespace MyGame.Player
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * playerSettings.variableJumpHeightMultiplier);
             }
 
-            // Dash input
+            // Dash
             if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
             {
-                StartCoroutine(Dash());
+                StartCoroutine(DashCoroutine());
             }
         }
 
@@ -163,7 +154,7 @@ namespace MyGame.Player
             {
                 wallJumpingCounter = playerSettings.wallJumpingTime;
                 isWallJumping = false;
-                wallJumpingDirection = -Mathf.Sign(transform.localScale.x); // Facing directionın tersine
+                wallJumpingDirection = -Mathf.Sign(transform.localScale.x);
             }
             else
             {
@@ -173,7 +164,10 @@ namespace MyGame.Player
             if (Input.GetButtonDown("Jump") && wallJumpingCounter > 0f)
             {
                 isWallJumping = true;
-                rb.linearVelocity = new Vector2(wallJumpingDirection * playerSettings.wallJumpingPower.x, playerSettings.wallJumpingPower.y);
+                rb.linearVelocity = new Vector2(
+                    wallJumpingDirection * playerSettings.wallJumpingPower.x,
+                    playerSettings.wallJumpingPower.y
+                );
                 wallJumpingCounter = 0f;
 
                 FlipCharacterImmediately();
@@ -181,7 +175,7 @@ namespace MyGame.Player
             }
         }
 
-        private IEnumerator Dash()
+        private IEnumerator DashCoroutine()
         {
             canDash = false;
             isDashing = true;
@@ -190,15 +184,11 @@ namespace MyGame.Player
             rb.gravityScale = 0f;
 
             rb.linearVelocity = new Vector2(transform.localScale.x * playerSettings.dashingPower, 0f);
-
-            if (dashTrail != null)
-                dashTrail.emitting = true;
+            if (dashTrail != null) dashTrail.emitting = true;
 
             yield return new WaitForSeconds(playerSettings.dashingTime);
 
-            if (dashTrail != null)
-                dashTrail.emitting = false;
-
+            if (dashTrail != null) dashTrail.emitting = false;
             rb.gravityScale = originalGravity;
             isDashing = false;
 
@@ -229,6 +219,32 @@ namespace MyGame.Player
             transform.localScale = localScale;
         }
 
+        private void UpdateAnimatorParameters()
+        {
+            if (animator == null) return;
+
+            float horizontalSpeed = Mathf.Abs(rb.linearVelocity.x);
+            animator.SetFloat("Speed", horizontalSpeed);
+
+            bool grounded = IsGrounded();
+            bool isJumping = !grounded && rb.linearVelocity.y > 0.1f;
+            bool isFalling = !grounded && rb.linearVelocity.y < -0.1f;
+            bool isLanding = (!isFalling && grounded && rb.linearVelocity.y < 0f);
+
+            animator.SetBool("IsJumping", isJumping);
+            animator.SetBool("IsFalling", isFalling);
+            animator.SetBool("IsLanding", isLanding);
+            animator.SetBool("IsWallSliding", isWallSliding);
+            animator.SetBool("IsSideClimbing", isSideClimbing);
+            animator.SetBool("IsDashing", isDashing);
+            animator.SetBool("IsGrounded", grounded);
+        }
+
+        public void SetCodePanelState(bool isActive)
+        {
+            isCodePanelActive = isActive;
+        }
+
         private void OnDrawGizmos()
         {
             if (groundCheck != null)
@@ -242,58 +258,6 @@ namespace MyGame.Player
                 Gizmos.color = Color.red;
                 Gizmos.DrawWireSphere(wallCheck.position, playerSettings.checkRadius);
             }
-        }
-
-        private void OnTriggerEnter2D(Collider2D collision)
-        {
-            if (collision.CompareTag("CameraTrigger"))
-            {
-                CameraTrigger trigger = collision.GetComponent<CameraTrigger>();
-                if (trigger != null)
-                {
-                    if (cameraMoveCoroutine != null)
-                    {
-                        StopCoroutine(cameraMoveCoroutine);
-                    }
-                    cameraMoveCoroutine = StartCoroutine(MoveCamera(trigger.targetPosition));
-                }
-            }
-        }
-
-        private IEnumerator MoveCamera(Vector3 targetPosition)
-        {
-            while (Vector3.Distance(mainCamera.transform.position, targetPosition) > playerSettings.cameraStopDistance)
-            {
-                Vector3 newPosition = Vector3.Lerp(mainCamera.transform.position, targetPosition, playerSettings.cameraSmoothSpeed * Time.deltaTime);
-                newPosition.z = mainCamera.transform.position.z;
-                mainCamera.transform.position = newPosition;
-                yield return null;
-            }
-        }
-
-        public void SetCodePanelState(bool isActive)
-        {
-            isCodePanelActive = isActive;
-        }
-
-        private void UpdateAnimatorParameters()
-        {
-            float horizontalSpeed = Mathf.Abs(rb.linearVelocity.x);
-            animator.SetFloat("Speed", horizontalSpeed);
-
-            bool grounded = IsGrounded();
-            bool isJumping = !grounded && rb.linearVelocity.y > 0.1f;
-            bool isFalling = !grounded && rb.linearVelocity.y < -0.1f;
-
-            animator.SetBool("IsJumping", isJumping);
-            animator.SetBool("IsFalling", isFalling);
-            bool isLanding = (!isFalling && grounded && rb.linearVelocity.y < 0f);
-            animator.SetBool("IsLanding", isLanding);
-
-            animator.SetBool("IsWallSliding", isWallSliding);
-            animator.SetBool("IsSideClimbing", isSideClimbing);
-            animator.SetBool("IsDashing", isDashing);
-            animator.SetBool("IsGrounded", grounded);
         }
     }
 }

@@ -1,3 +1,4 @@
+// Assets/Scripts/UI/TriggerTextChanger.cs
 using UnityEngine;
 using TMPro;
 using System.Collections;
@@ -28,11 +29,11 @@ public class TriggerTextChanger : MonoBehaviour
         if (!isTriggered && collision.CompareTag("Player"))
         {
             isTriggered = true;
-            StartCoroutine(HandleTextChange());
+            StartCoroutine(HandleTextChangeCoroutine());
         }
     }
 
-    private IEnumerator HandleTextChange()
+    private IEnumerator HandleTextChangeCoroutine()
     {
         if (targetText == null) yield break;
 

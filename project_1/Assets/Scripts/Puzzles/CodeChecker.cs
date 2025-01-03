@@ -1,8 +1,5 @@
 // Assets/Scripts/Puzzles/CodeChecker.cs
 using UnityEngine;
-using MyGame.Walls;
-using MyGame.Core.Utilities;
-using MyGame.Managers;
 using MyGame.UI;
 
 namespace MyGame.Puzzles
@@ -10,31 +7,40 @@ namespace MyGame.Puzzles
     /// <summary>
     /// Program çıktısını kontrol eder ve bulmacanın çözülüp çözülmediğini belirler.
     /// </summary>
-    public class CodeChecker : MonoBehaviour
+    public class CodeChecker : MonoBehaviour, ICodeChecker
     {
-        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi
+        [Header("Puzzle Data")]
+        [SerializeField] private PuzzleData currentPuzzle;
 
-        [SerializeField] private WallController[] wallsToControl;
+        [Header("Walls To Control")]
+        [SerializeField] private MonoBehaviour[] wallsToControl;
+        // Inspector'da WallController referansları eklenebilir
+        // ya da IMovable[] direkt kullanabilirsiniz (Unity inspector arayüzü için biraz trick gerekebilir).
 
         /// <summary>
-        /// Program çıktısını beklenen değerle karşılaştırır.
+        /// Puzzle çözüldüğünde diğer sınıflara haber vermek için event.
         /// </summary>
+        public static event System.Action<PuzzleData> OnPuzzleSolved;
+
         public void CheckPuzzleOutput(string output)
         {
             if (currentPuzzle == null)
             {
-                Debug.LogError("CodeChecker: currentPuzzle referansı atanmamış!");
+                Debug.LogError("CodeChecker: currentPuzzle is null!");
                 return;
             }
 
             Debug.Log($"CodeChecker: Alınan Çıktı: '{output}'");
             Debug.Log($"CodeChecker: Beklenen Çıktı: '{currentPuzzle.expectedOutput}'");
 
+            // Çıktı beklenenle eşleşiyorsa:
             if (output.Trim() == currentPuzzle.expectedOutput)
             {
                 SingleLineOutput.Instance.DisplayOutput(currentPuzzle.successMessage);
                 TriggerWallMovements();
-                UnlockNextLevel();
+
+                // Puzzle çözüldüğünü event ile duyuruyoruz
+                OnPuzzleSolved?.Invoke(currentPuzzle);
             }
             else
             {
@@ -44,18 +50,14 @@ namespace MyGame.Puzzles
 
         private void TriggerWallMovements()
         {
-            foreach (WallController wall in wallsToControl)
+            // IMovable arayüzü üzerinden çağırmak için:
+            foreach (var wallObj in wallsToControl)
             {
-                EventManager.Instance.EnqueueEvent(() => wall.MoveToTarget());
+                if (wallObj is MyGame.Walls.IMovable movableWall)
+                {
+                    movableWall.MoveToTarget();
+                }
             }
-        }
-
-        private void UnlockNextLevel()
-        {
-            // LevelManager ile seviyeyi kilidi açma işlemini gerçekleştirin.
-            Debug.Log("Sonraki seviye açıldı!");
-            // Örneğin:
-            // LevelManager.Instance.UnlockLevel(nextLevelID);
         }
 
         public void DisplayError(string error)

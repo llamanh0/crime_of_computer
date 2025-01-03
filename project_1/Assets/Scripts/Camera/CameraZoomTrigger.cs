@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using UnityEditor;
+using MyGame.Player;
 
 /// <summary>
 /// Oyuncu bu tetikleyiciye girince kameranın zoom (orthographic size) değerini değiştirir.
@@ -21,9 +23,15 @@ public class CameraZoomTrigger : MonoBehaviour
     [Tooltip("Tetikleyiciden çıkınca kameranın eski boyutuna dönsün mü?")]
     [SerializeField] private bool revertOnExit = false;
 
+    [Header("Nereye ?")]
+    [SerializeField] private Vector3 targetPosition;
+
     // Yumuşak geçişte eski / yeni değerler
     private float originalSize;
     private Coroutine currentZoomCoroutine;
+    private PlayerMovement playerMovementScript;
+    private PlayerSettings currentSettings;
+    private Coroutine cameraMoveCoroutine;
 
     private void Awake()
     {
@@ -34,6 +42,7 @@ public class CameraZoomTrigger : MonoBehaviour
         }
         // Oyun başlarken kameranın orijinal orthographic size değerini kaydediyoruz
         originalSize = mainCamera.orthographicSize;
+        currentSettings = playerMovementScript.playerSettings;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -47,6 +56,26 @@ public class CameraZoomTrigger : MonoBehaviour
                 StopCoroutine(currentZoomCoroutine);
             }
             currentZoomCoroutine = StartCoroutine(ChangeCameraSize(mainCamera.orthographicSize, targetOrthographicSize, transitionDuration));
+            CameraTrigger trigger = collision.GetComponent<CameraTrigger>();
+            if (trigger != null)
+            {
+                if (cameraMoveCoroutine != null)
+                {
+                    StopCoroutine(cameraMoveCoroutine);
+                }
+                cameraMoveCoroutine = StartCoroutine(MoveCamera(trigger.targetPosition));
+            }
+        }
+    }
+
+    private IEnumerator MoveCamera(Vector3 targetPosition)
+    {
+        while (Vector3.Distance(mainCamera.transform.position, targetPosition) > currentSettings.cameraStopDistance)
+        {
+            Vector3 newPosition = Vector3.Lerp(mainCamera.transform.position, targetPosition, currentSettings.cameraSmoothSpeed * Time.deltaTime);
+            newPosition.z = mainCamera.transform.position.z;
+            mainCamera.transform.position = newPosition;
+            yield return null;
         }
     }
 

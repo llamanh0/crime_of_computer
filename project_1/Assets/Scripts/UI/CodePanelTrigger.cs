@@ -17,16 +17,20 @@ namespace MyGame.UI
         [SerializeField] private Animator playerAnimator; // Oyuncu animasyon kontrolcüsü
 
         [Header("Puzzle References")]
-        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi
+        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi (kullanılacaksa)
 
         private bool isPlayerNearby = false;
         private PlayerMovement playerMovement;
 
-        [System.Obsolete]
         private void Start()
         {
-            playerMovement = FindObjectOfType<PlayerMovement>();
-            if (playerMovement == null)
+            // Sahnedeki PlayerMovement script'ini bulur
+            var foundPlayers = FindObjectsByType<PlayerMovement>(FindObjectsSortMode.None);
+            if (foundPlayers.Length > 0)
+            {
+                playerMovement = foundPlayers[0];
+            }
+            else
             {
                 Debug.LogError("CodePanelTrigger: PlayerMovement script'i sahnede bulunamadı.");
             }
@@ -34,6 +38,7 @@ namespace MyGame.UI
 
         private void Update()
         {
+            // Oyuncu yakındaysa ve E tuşuna basıldıysa paneli aç
             if (isPlayerNearby && Input.GetKeyDown(KeyCode.E))
             {
                 OpenCodePanel();
@@ -45,14 +50,17 @@ namespace MyGame.UI
             if (codePanel != null)
             {
                 codePanel.SetActive(true);
+
                 if (playerAnimator != null)
                 {
                     playerAnimator.SetBool("isIdle", true); // Idle animasyonuna geç
                 }
+
                 if (playerMovement != null)
                 {
                     playerMovement.SetCodePanelState(true);
                 }
+
                 Time.timeScale = 0f; // Oyun zamanını duraklatır
             }
             else
@@ -69,14 +77,17 @@ namespace MyGame.UI
             if (codePanel != null)
             {
                 codePanel.SetActive(false);
+
                 if (playerAnimator != null)
                 {
                     playerAnimator.SetBool("isIdle", false); // Idle animasyonundan çıkar
                 }
+
                 if (playerMovement != null)
                 {
                     playerMovement.SetCodePanelState(false);
                 }
+
                 Time.timeScale = 1f; // Oyun zamanını devam ettirir
             }
             else
@@ -90,7 +101,7 @@ namespace MyGame.UI
             if (collision.CompareTag("Player"))
             {
                 isPlayerNearby = true;
-                // "Press E to interact" UI öğesini gösterebilirsiniz
+                // "Press E to interact" UI öğesi gösterebilirsiniz
             }
         }
 

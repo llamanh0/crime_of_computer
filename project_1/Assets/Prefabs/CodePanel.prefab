@@ -437,7 +437,6 @@ GameObject:
   - component: {fileID: 136690620451400204}
   - component: {fileID: 3731303284487614832}
   - component: {fileID: 12538414034895557}
-  - component: {fileID: 8186914215711161269}
   - component: {fileID: 6173981063729400218}
   m_Layer: 5
   m_Name: CodePanel
@@ -445,7 +444,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &136690620451400204
 RectTransform:
   m_ObjectHideFlags: 0
@@ -508,22 +507,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 5
---- !u!114 &8186914215711161269
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 890140675102100908}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9396a24491ed5e04d82ae94876e629d5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  codeInputField: {fileID: 4836331491717481814}
-  runButton: {fileID: 3011029705388108915}
-  currentPuzzle: {fileID: 0}
-  compiler: {fileID: 0}
 --- !u!114 &6173981063729400218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,8 +519,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a49d3c35d87cf7418bf0dcf0933c21f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  codeChecker: {fileID: 0}
-  puzzleId: 
+  codeCheckerObject: {fileID: 0}
+  currentPuzzle: {fileID: 0}
   compilerSettings: {fileID: 0}
 --- !u!1 &1123519301340231520
 GameObject:

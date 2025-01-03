@@ -1,3 +1,4 @@
+// Assets/Scripts/UI/TextEraseEffect.cs
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -9,11 +10,14 @@ using System.Collections;
 /// </summary>
 public class TextEraseEffect : MonoBehaviour
 {
+    [Header("References")]
     [SerializeField] private TextMeshProUGUI targetText;
     [SerializeField] private Button changeButton;
+
+    [Header("Settings")]
     [SerializeField] private float speed = 0.1f;
     [SerializeField] private string newText;
-    [SerializeField] private bool allowSkip = true; // Efekti ikinci basışta hızlıca tamamlamak ister misin?
+    [SerializeField] private bool allowSkip = true; // Efekti ikinci basışta hızlıca tamamlasın mı?
 
     private bool hasTextBeenChanged = false;
     private Coroutine currentCoroutine;
@@ -28,11 +32,11 @@ public class TextEraseEffect : MonoBehaviour
 
     private void StartReplace()
     {
+        // Metin daha önce değiştirilmediyse, efekti başlat
         if (!hasTextBeenChanged)
         {
             hasTextBeenChanged = true;
 
-            // Eski coroutine varsa durdur
             if (currentCoroutine != null)
             {
                 StopCoroutine(currentCoroutine);
@@ -41,12 +45,15 @@ public class TextEraseEffect : MonoBehaviour
         }
         else if (allowSkip)
         {
-            // Eğer skip edilebilir olsun diyorsanız
+            // Skip özelliği aktifse, efekti direkt bitir
             if (currentCoroutine != null)
             {
                 StopCoroutine(currentCoroutine);
             }
-            targetText.text = newText; // Anında final metnini yaz
+            if (targetText != null)
+            {
+                targetText.text = newText; // Final metnini anında yaz
+            }
         }
     }
 

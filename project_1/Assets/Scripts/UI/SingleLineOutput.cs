@@ -1,12 +1,13 @@
 // Assets/Scripts/UI/SingleLineOutput.cs
 using TMPro;
 using UnityEngine;
-using MyGame.Core.Utilities; // Singleton namespace'i
+using MyGame.Core.Utilities; // Sizin Singleton yapınız varsa
 
 namespace MyGame.UI
 {
     /// <summary>
-    /// Tek satırlık mesajları UI'da görüntüler.
+    /// Tek satırlık mesajları UI'da görüntüler. 
+    /// Örnek singleton kullanım.
     /// </summary>
     public class SingleLineOutput : Singleton<SingleLineOutput>
     {

@@ -2,7 +2,6 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using MyGame.UI;
 
 namespace MyGame.Puzzles
 {
@@ -18,25 +17,30 @@ namespace MyGame.Puzzles
         [Header("Puzzle Data")]
         [SerializeField] private PuzzleData currentPuzzle;
 
-        [Header("Compiler Settings")]
+        [Header("Compiler and Checker")]
         [SerializeField] private CCompiler compiler;
+        [SerializeField] private CodeChecker codeChecker;
+        // Veya inspector'da ICodeChecker tipinde bir Reference alabilirsiniz (daha geliþmiþ)
 
-        [System.Obsolete]
         private void Awake()
         {
-            if (compiler == null)
-            {
-                Debug.LogError("PuzzleManager: CCompiler reference not assigned.");
-            }
+            // Event'e abone oluyoruz
+            CodeChecker.OnPuzzleSolved += HandlePuzzleSolved;
 
+            if (compiler == null)
+                Debug.LogError("PuzzleManager: CCompiler is null!");
+            if (codeChecker == null)
+                Debug.LogError("PuzzleManager: CodeChecker is null!");
             if (runButton != null)
-            {
                 runButton.onClick.AddListener(OnRunButtonClicked);
-            }
             else
-            {
-                Debug.LogError("PuzzleManager: RunButton reference not assigned.");
-            }
+                Debug.LogError("PuzzleManager: RunButton is null!");
+        }
+
+        private void OnDestroy()
+        {
+            // Scene deðiþirse veya bu obje yok olursa unsub olmak gerekir
+            CodeChecker.OnPuzzleSolved -= HandlePuzzleSolved;
         }
 
         private void Start()
@@ -46,22 +50,30 @@ namespace MyGame.Puzzles
 
         private void DisplayPuzzleDescription()
         {
-            // Assuming there's a UI element to display the puzzle description
-            // For example:
-            // puzzleDescriptionText.text = currentPuzzle.puzzleDescription;
+            // Burada puzzle açýklamasýný bir UI text'e yansýtabilirsiniz
+            // Ör: puzzleDescriptionText.text = currentPuzzle.puzzleDescription;
         }
 
-        [System.Obsolete]
         private void OnRunButtonClicked()
         {
+            if (compiler == null || codeChecker == null)
+                return;
+
             string userCode = codeInputField.text;
             if (string.IsNullOrWhiteSpace(userCode))
             {
-                SingleLineOutput.Instance.DisplayOutput("Code input cannot be empty.");
+                codeChecker.DisplayOutput("Code input cannot be empty.");
                 return;
             }
 
+            // Derleme & Çalýþtýrma
             compiler.CompileAndRun(userCode);
+        }
+
+        private void HandlePuzzleSolved(PuzzleData solvedPuzzle)
+        {
+            Debug.Log($"PuzzleManager: Puzzle çözüldü => {solvedPuzzle.puzzleID}");
+            // Burada puzzle çözülünce yapýlacak iþleri (seviye geçiþi, ödül vs.) ekleyebilirsiniz
         }
     }
 }

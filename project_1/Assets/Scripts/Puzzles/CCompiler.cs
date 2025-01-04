@@ -15,10 +15,7 @@ namespace MyGame.Puzzles
     {
         [Header("Checker (Interface Reference)")]
         [SerializeField] private MonoBehaviour codeCheckerObject;
-        // Inspector'da CodeChecker ekleyebilirsiniz, ama as ICodeChecker kullanacağız.
-
         private ICodeChecker codeChecker;
-
         [Header("Puzzle Settings")]
         [SerializeField] private PuzzleData currentPuzzle;
         [SerializeField] private CompilerSettings compilerSettings;
@@ -42,7 +39,7 @@ namespace MyGame.Puzzles
             }
         }
 
-        public async void CompileAndRun(string userCode)
+        public async void CompileAndRun(string userCode, PuzzleData puzzleData)
         {
             if (codeChecker == null || currentPuzzle == null || compilerSettings == null)
             {
@@ -65,6 +62,7 @@ namespace MyGame.Puzzles
                 return;
             }
 
+
             string tempDir = Path.Combine(Application.temporaryCachePath, "CCompiler");
             Directory.CreateDirectory(tempDir);
 
@@ -74,7 +72,9 @@ namespace MyGame.Puzzles
 #if UNITY_STANDALONE_WIN
             executablePath += ".exe";
 #endif
-            string fullCode = CodeTemplate.GetFullCode(currentPuzzle.puzzleID, userCode);
+
+            string fullCode = puzzleData != null ? puzzleData.GetFullCode(userCode) : userCode;
+            //string fullCode = CodeTemplate.GetFullCode(currentPuzzle.puzzleID, userCode);
 
             await File.WriteAllTextAsync(sourcePath, fullCode);
             Debug.Log($"C kodu geçici dosyaya yazıldı: {sourcePath}");

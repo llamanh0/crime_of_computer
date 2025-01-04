@@ -16,9 +16,6 @@ namespace MyGame.UI
         [Header("Player References")]
         [SerializeField] private Animator playerAnimator; // Oyuncu animasyon kontrolcüsü
 
-        [Header("Puzzle References")]
-        [SerializeField] private PuzzleData currentPuzzle; // Şu anki bulmaca verisi (kullanılacaksa)
-
         private bool isPlayerNearby = false;
         private PlayerMovement playerMovement;
 

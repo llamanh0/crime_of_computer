@@ -50,7 +50,7 @@ namespace MyGame.Puzzles
 
         private void DisplayPuzzleDescription()
         {
-            // Burada puzzle açýklamasýný bir UI text'e yansýtabilirsiniz
+            Debug.Log("Puzzle Açýklamasý: " + currentPuzzle.puzzleDescription);
             // Ör: puzzleDescriptionText.text = currentPuzzle.puzzleDescription;
         }
 
@@ -67,7 +67,7 @@ namespace MyGame.Puzzles
             }
 
             // Derleme & Çalýþtýrma
-            compiler.CompileAndRun(userCode);
+            compiler.CompileAndRun(userCode, currentPuzzle);
         }
 
         private void HandlePuzzleSolved(PuzzleData solvedPuzzle)
